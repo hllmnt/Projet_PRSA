@@ -1,12 +1,7 @@
-#include <iostream>
-using namespace std;
-#include <armadillo>
-#include "../headers/fcts.h"
+#include "../headers/solver.h"
 
+Solver::Solver(Strategy* strategy /*TO DO more arguments*/) : strategy(strategy) /*TO DO more arguments*/ {}
 
-
-int main(int argc, char *argv[]) {
-    
-
-
+arma::mat Solver::generateNextStep() {
+    return strategy->generateNextStep();
 }

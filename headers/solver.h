@@ -1,15 +1,18 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 #include <armadillo>
+#include "strategy.h"
 
-class Solver
-{
+class Solver {
+private:
+    Strategy* strategy;
+
 public:
-    Basis(double, double, int, double); // Constructor that initialize the parameters (ie mMax, nMax, n_zMax) to the correct values
+    // TO DO more attributs
 
+    Solver(Strategy* /* TO DO more arguments*/);
 
-
-    arma::mat generateNextStep (); // return the following state of 
+    arma::mat generateNextStep (); // return the following state of the wave function
 };
 
 #endif // SOLVER_H
