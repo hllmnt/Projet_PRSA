@@ -1,8 +1,8 @@
 #include "../headers/strategy.h"
 
-class CtcsSolver : public Strategy {
+class Ctcs : public Strategy {
 public:
-    arma::mat generateNextStep () override {
+    void generateNextStep () override {
         // TO DO
         return NULL;
     }

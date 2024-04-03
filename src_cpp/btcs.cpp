@@ -1,8 +1,8 @@
 #include "../headers/strategy.h"
 
-class BtcsSolver : public Strategy {
+class Btcs : public Strategy {
 public:
-    arma::mat generateNextStep () override {
+    void generateNextStep () override {
         // TO DO
         return NULL;
     }

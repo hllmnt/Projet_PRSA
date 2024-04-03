@@ -4,7 +4,7 @@
 
 class Strategy {
 public:
-    virtual arma::mat generateNextStep () = 0;
+    virtual void generateNextStep () = 0;
 };
 
 #endif // STRATEGY_H
