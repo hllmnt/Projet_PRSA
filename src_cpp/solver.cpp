@@ -1,12 +1,12 @@
 #include "../headers/solver.h"
 
-Solver::Solver(arma::cx_mat psi, arma::cx_mat V, unsigned int nbXPts, unsigned int nbYPts, double dx, double dy, double dt, double mass)
-    : psi(psi), V(V), nbXPts(nbXPts), nbYPts(nbYPts), dx(dx), dy(dy), dt(dt), mass(mass) 
+Solver::Solver(arma::cx_mat psi, arma::cx_mat V, unsigned int nbXPts, unsigned int nbYPts, double dx, double dy, double dt, double m)
+    : psi(psi), V(V), nbXPts(nbXPts), nbYPts(nbYPts), dx(dx), dy(dy), dt(dt), m(m) 
 {
     i_dt_over_hb = arma::cx_double(0, dt / Constantes::hb);
-    i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = arma::cx_double(0, dt * Constantes::hb) / (m * dx * dx) + arma::cx_double(0, dt * Constantes::hb) / (m * dy * dy);
-    i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * Constantes::hb) / (2 * m * dx * dx);
-    i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb) / (2 * m * dy * dy);
+    i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = arma::cx_double(0, dt * Constantes::hb / (m * dx * dx)) + arma::cx_double(0, dt * Constantes::hb / (m * dy * dy));
+    i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * Constantes::hb / (2 * m * dx * dx));
+    i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb / (2 * m * dy * dy));
 }
 
 arma::cx_mat getPsi () {
