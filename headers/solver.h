@@ -6,10 +6,7 @@
 class Solver {
 private:
     const arma::cx_mat V;
-    const unsigned int nbXPts;
-    const unsigned int nbYPts;
-    const double dx;
-    const double dy;
+    const double grid_interval;
     const double dt;
     const double m;
 
@@ -21,11 +18,12 @@ private:
 public:
     arma::cx_mat psi;
 
-    Solver(arma::cx_mat,arma::cx_mat,unsigned int,unsigned int,double,double,double,double);
+    Solver(arma::cx_mat,arma::cx_mat,double,double,double);
 
     arma::cx_mat getPsi ();
 
-    void generateNextStep_FTCS (); // return the following state of the wave function
+// return the following state of the wave function
+    void generateNextStep_FTCS ();
     void generateNextStep_BTCS ();
     void generateNextStep_CTCS ();
 };
