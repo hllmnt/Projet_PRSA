@@ -6,7 +6,8 @@
 class Solver {
 private:
     const arma::cx_mat V;
-    const double grid_interval;
+    const double dx;
+    const double dy;
     const double dt;
     const double m;
 
