@@ -1,6 +1,6 @@
 #include "../headers/solver.h"
 
-Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, arma::mat V_imaginary,double grid_interval, double dt, double m) {
+Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, arma::mat V_imaginary, double grid_interval, double dt, double m) {
     psi = arma::cx_mat(psi_real,psi_imaginary);
     V = arma::cx_mat(V_real,V_imaginary);
     dx = grid_interval;
@@ -14,22 +14,24 @@ Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, ar
     i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb / (2 * m * dy * dy));
 }
 
-arma::cx_mat getPsi () {
-    return psi;
-}
-
 void Solver::generateNextStep_FTCS () {
-    arma::cx_mat psi_x_plus_dx = psi.submat(0, 1, psi.n_rows-1, psi.n_cols-1);
-    psi_x_plus_dx.insert_cols(psi_x_plus_dx.n_cols-1,fill::zeroes);
+    arma::colvec col_zeros = arma::colvec(psi.n_rows,arma::fill::zeros);
+    arma::cx_colvec cx_col_zeros = arma::cx_colvec(col_zeros,col_zeros);
 
-    arma::cx_mat psi_x_minus_dx = psi.submat(0, 0, psi.n_rows-2, psi.n_cols-1);
-    psi_x_minus_dx.insert_cols(0,fill::zeroes);
+    arma::cx_mat psi_x_plus_dx = psi.submat(0,1,-1,-1);
+    psi_x_plus_dx.insert_cols(-1,cx_col_zeros);
 
-    arma::cx_mat psi_y_plus_dy = psi.submat(0, 1, psi.n_rows-1, psi.n_cols-1);
-    psi_y_plus_dy.insert_rows(psi_y_plus_dy.n_cols-1,fill::zeroes);
+    arma::cx_mat psi_x_minus_dx = psi.submat(0,0,-2,-1);
+    psi_x_minus_dx.insert_cols(0,cx_col_zeros);
 
-    arma::cx_mat psi_y_minus_dy = psi.submat(0, 0, psi.n_rows-1, psi.n_cols-2);
-    psi_y_minus_dy.insert_rows(0,fill::zeroes);
+    arma::rowvec row_zeros = arma::rowvec(psi.n_rows,arma::fill::zeros);
+    arma::cx_rowvec cx_row_zeros = arma::cx_rowvec(row_zeros,row_zeros);
+
+    arma::cx_mat psi_y_plus_dy = psi.submat(0,1,-1,-1);
+    psi_y_plus_dy.insert_rows(-1,cx_row_zeros);
+
+    arma::cx_mat psi_y_minus_dy = psi.submat(0,0,-1,-2);
+    psi_y_minus_dy.insert_rows(0,cx_row_zeros);
 
     psi += -(i_dt_over_hb * V + i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy) * psi
             + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)

@@ -5,23 +5,21 @@
 
 class Solver {
 private:
-    const arma::cx_mat V;
-    const double dx;
-    const double dy;
-    const double dt;
-    const double m;
+    arma::cx_mat V;
+    double dx;
+    double dy;
+    double dt;
+    double m;
 
-    const arma::cx_double i_dt_over_hb;
-    const arma::cx_double i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
-    const arma::cx_double i_dt_hb_over_2m_ddx;
-    const arma::cx_double i_dt_hb_over_2m_ddy;
+    arma::cx_double i_dt_over_hb;
+    arma::cx_double i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
+    arma::cx_double i_dt_hb_over_2m_ddx;
+    arma::cx_double i_dt_hb_over_2m_ddy;
 
 public:
     arma::cx_mat psi;
 
-    Solver(arma::cx_mat,arma::cx_mat,double,double,double);
-
-    arma::cx_mat getPsi ();
+    Solver(arma::mat,arma::mat,arma::mat,arma::mat,double,double,double);
 
 // return the following state of the wave function
     void generateNextStep_FTCS ();
