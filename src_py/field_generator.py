@@ -61,5 +61,10 @@ fig = pl.figure()
 ax = fig.add_subplot(111, projection='3d')
 X, Y = np.meshgrid(x, y)
 #plotting with colorbar
+#adding lable and units
+pl.xlabel('x [m]')
+pl.ylabel('y [m]')
+pl.clabel('psi [m^(-1/2)]')
+pl.title('Wave function')
 pl.colorbar(ax.plot_surface(X, Y, psi+v, cmap='viridis'))
 pl.show()
