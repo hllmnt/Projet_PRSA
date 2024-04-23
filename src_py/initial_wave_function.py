@@ -36,12 +36,12 @@ def solution2D(nx, ny, x, y, hx, hy, m=1, w=1, hbar=1):
     return psix @ psiy
 
 def solutionMix(deg_array_x, deg_array_y, proportion_array, x, y, m=1, w=1, hbar=1):
-    psi = np.zeros((len(x), len(y)))
+    psi = np.zeros((x.size, y.size))
     hx = hermite(np.max(deg_array_x), x)
     hy = hermite(np.max(deg_array_y), y)
-    for i in range(len(deg_array_x)):
+    for i in range(deg_array_x.size):
         psi += proportion_array[i] * solution2D(deg_array_x[i], deg_array_y[i], x, y, hx, hy, m, w, hbar)
-    return psi
+    return psi/np.sqrt(np.sum(proportion_array*proportion_array))
 
 
 def gaussian_packet(x, x0, y, y0, kx, ky, w=1):
