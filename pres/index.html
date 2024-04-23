@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Projet INPS</title>
+    <title>Projet PRSA</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="core/fonts/mono.css"> 
     <link rel="stylesheet" type="text/css" href="core/css/animate.css"> 
@@ -43,15 +43,15 @@ Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - [Retour au début](./index.
 class: middle
 # Plan
 
-1. Field Generator
+## 1. Field Generator
 
-2. Solver
+## 2. Solver
 
-3. Post-processor
+## 3. Post-processor
 
-4. Database
+## 4. Database
 
-5. Physical application
+## 5. Physical application
 
 ---
 
@@ -70,7 +70,8 @@ Projet/
 * src_py/
 	* field_generator.py
 	* initial_wave_function.py
-  * potential.py
+	* potential.py
+	* db_access.py
 * test/
   * test_solver.h
 * Makefile
@@ -167,6 +168,51 @@ def from_formula(x, y, k, nx, ny):
     y = np.tile(y, (len(x[0]), 1))
     return k*(np.power(x, nx)+np.power(y, ny))   
 ```
+---
+
+
+
+
+
+
+
+---
+
+# Post-processor
+
+- Takes a run ID as a parameter
+
+- Gets each matrix with this run ID back from the database
+
+- Creates a .vtk file for each of the matrix
+
+
+
+---
+
+# Database
+
+- Use of MongoDB
+
+## Arborescence:
+
+.alert.tree.hcenter[
+Database
+* Collection JSON
+	* JSON object
+	* Run ID
+* Collection Matrix
+	* Numpy matrix
+	* Run ID
+	* Number of iteration of the matrix
+* Collection Potentials
+	* Numpy matrix
+	* Run ID
+]
+
+
+---
+
 ---
 
 # Basis
