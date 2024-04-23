@@ -1,3 +1,5 @@
 bin
 obj
 src_py/__pycache__
+*.png
+visu.py
