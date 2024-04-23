@@ -11,7 +11,13 @@ def fromBin(x):
 
 def check_json(json_,database):
 
-    return #TODO
+    x=toBin(json_)
+    col=database["json"]
+    query={"json":x}
+    jlist=col.find(query)
+    if(len(jlist)==1):
+        return True
+    return False
 
 def insert_json(json_,identifier,database):
 
