@@ -4,36 +4,90 @@
 #include <iostream>
 using namespace std;
 #include "../headers/solver.h"
-
-#define FTCS
-//#define BTCS
-//#define CTCS
+#include "../headers/constants.h"
 
 class TestMethods : public CxxTest::TestSuite {
 public:
-    #ifdef FTCS
-    void testFtcs () {
-        cout << "\nStarting FTCS test" << endl;
+    void testFtcs1 () {
+        arma::cx_mat psi = {{arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)}};
+    
+        arma::cx_mat V = {{arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)}};
+
+        double dx = 1.0;
+        double dy = 1.0;
+        double dt = 1.0;
+        double m = 1.0;
+
+        Solver solver(psi, V, dx, dy, dt, m);
+        solver.generateNextStep_FTCS();
+
+        arma::cx_mat expectedPsi = {{arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                                    {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)},
+                                    {arma::cx_double(0,0), arma::cx_double(0,0), arma::cx_double(0,0)}};
+
+        TS_ASSERT_DELTA(arma::norm(solver.psi - expectedPsi), 0.0, 1e-08);
+    }
+
+    void testFtcs2 () {
+        arma::cx_mat psi = {{arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0),  arma::cx_double(1,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)}};
+
         arma::cx_mat V = {{arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
-                          {arma::cx_double(0,0),  arma::cx_double(1,1), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
                           {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)}};
-        Solver solver();
 
+        double dx = 1.0;
+        double dy = 1.0;
+        double dt = 1.0;
+        double m = 1.0;
 
-        cout << "Finished FTCS test" << endl; 
+        Solver solver(psi, V, dx, dy, dt, m);
+        solver.generateNextStep_FTCS();
+
+        arma::cx_mat expectedPsi = {{arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)},
+                                    {arma::cx_double(0,Constants::hb/2), arma::cx_double(1,-2),              arma::cx_double(0,Constants::hb/2)},
+                                    {arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)}};
+
+        TS_ASSERT_DELTA(arma::norm(solver.psi - expectedPsi), 0.0, 1e-08);
     }
-    #endif
 
-    #ifdef BTCS
-    void testBtcs () {
-        // TO DO
-    }
-    #endif
+    void testFtcs3 () {
+        arma::cx_mat psi = {{arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0),  arma::cx_double(1,0), arma::cx_double(0,0)},
+                            {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)}};
 
-    #ifdef CTCS
-    void testCtcs () {
-        // TO DO
+        arma::cx_mat V = {{arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)},
+                          {arma::cx_double(0,0),  arma::cx_double(0,0), arma::cx_double(0,0)}};
+
+        double dx = 1.0;
+        double dy = 1.0;
+        double dt = 1.0;
+        double m = 1.0;
+
+        Solver solver(psi, V, dx, dy, dt, m);
+        solver.generateNextStep_FTCS();
+
+        arma::cx_mat expectedPsi = {{arma::cx_double(0,0),               arma::cx_double(0,0),               arma::cx_double(0,0)},
+                                    {arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)},
+                                    {arma::cx_double(0,Constants::hb/2), arma::cx_double(1,-2),              arma::cx_double(0,Constants::hb/2)},
+                                    {arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)}};
+
+        TS_ASSERT_DELTA(arma::norm(solver.psi - expectedPsi), 0.0, 1e-08);
     }
-    #endif
+
+    // void testBtcs () {
+    //     // TO DO
+    // }
+
+    // void testCtcs () {
+    //     // TO DO
+    // }
 };
-
