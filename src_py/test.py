@@ -1,0 +1,63 @@
+import sys
+sys.path.append("~/Documents/PRSA/projet/bindings")
+
+import solver
+import numpy as np
+
+psi = np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F') \
+        + 1j * np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F')
+V = np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F')
+dx = 0.1
+dy = 0.1
+dt = 0.01
+m = 1.0
+
+sol = solver.Solver(psi, V, dx, dy, dt, m)
+
+print("\nPsi :")
+print(sol.psi)
+
+sol.generateNextStep_FTCS()
+
+print("\nRésultat après une étape de FTCS :")
+print(sol.psi)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# psi = np.array([[0.1, 0.2, 0.3, 0.4], 
+#                 [0.5, 0.6, 0.7, 0.8], 
+#                 [0.9, 1.0, 1.1, 1.2], 
+#                 [1.3, 1.4, 1.5, 1.6]], 
+#                 dtype=np.complex128, order='F') \
+#                                                 \
+#       + 1j * np.array([[0.1, 0.2, 0.3, 0.4], 
+#                        [0.5, 0.6, 0.7, 0.8], 
+#                        [0.9, 1.0, 1.1, 1.2], 
+#                        [1.3, 1.4, 1.5, 1.6]], 
+#                        dtype=np.complex128, order='F')
+
+# V = np.array([[0.1, 0.2, 0.3, 0.4], 
+#               [0.5, 0.6, 0.7, 0.8], 
+#               [0.9, 1.0, 1.1, 1.2], 
+#               [1.3, 1.4, 1.5, 1.6]], 
+#               dtype=np.complex128, order='F')
