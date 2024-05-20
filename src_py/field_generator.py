@@ -114,6 +114,4 @@ else:
 
     norm = np.sum(psi*np.conj(psi))*dx*dy
 
-    print("Norm: ", norm)
-
     fdb.insert_mat(psi, str(norm), str(0), str(runID), db)
