@@ -11,7 +11,7 @@ Solver::Solver(arma::cx_mat _psi, arma::cx_mat V, double dx, double dy, double d
     i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constants::hb / (2 * m * dy * dy));
 }
 
-void Solver::updateShiftedPsi (const arma::cx_mat& _psi) {
+void Solver::updateShiftedPsis (const arma::cx_mat& _psi) {
 // Update extendedPsi which is useful for generating the submatrices below
     extendedPsi(arma::span(1, _psi.n_rows), arma::span(1, _psi.n_cols)) = _psi;
 
@@ -23,7 +23,7 @@ void Solver::updateShiftedPsi (const arma::cx_mat& _psi) {
 }
 
 void Solver::generateNextStep_FTCS () {
-    updateShiftedPsi(psi);
+    updateShiftedPsis(psi);
     psi += i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
             + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
             + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
@@ -37,7 +37,7 @@ void Solver::generateNextStep_BTCS () {
 
     do {
         lastGuessedPsi = newGuessedPsi;
-        updateShiftedPsi(lastGuessedPsi);
+        updateShiftedPsis(lastGuessedPsi);
         newGuessedPsi = psi + i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
                             + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
                             + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
@@ -48,7 +48,7 @@ void Solver::generateNextStep_BTCS () {
 };
 
 void Solver::generateNextStep_CTCS () {
-    updateShiftedPsi(psi);
+    updateShiftedPsis(psi);
     arma::cx_mat preCalculatedPsiPart = psi + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
                                                     + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
                                                     + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
@@ -59,7 +59,7 @@ void Solver::generateNextStep_CTCS () {
     
     do {
         lastGuessedPsi = newGuessedPsi;
-        updateShiftedPsi(lastGuessedPsi);
+        updateShiftedPsis(lastGuessedPsi);
         newGuessedPsi = preCalculatedPsiPart + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
                                                     + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
                                                     + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
