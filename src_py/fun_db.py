@@ -2,7 +2,6 @@ import pymongo
 import numpy as np
 import pickle
 import json
-import hashlib
 
 def toBin(x):
     return pickle.dumps(x)
@@ -30,29 +29,27 @@ def insert_json(json_,identifier,database):
     
     json=toBin(json_)
     col=database["json"]
-    #identifier=hashlib.sha256(json).hexdigest()
-    
     col.insert_one({"json":json, "id":identifier})
     return 
 
 
-def check_last_mat(identifier,database):
+def check_last_mat(identifier,collection,database):
 
-    col=database["matrix"]
+    col=database[collection]
     query={"id":identifier}
     matlist=col.find(query)
     last_occurence=-2
     for i in matlist:
-        if (i["itertion"]>last_occurence):
-            last_occurence=i["itertion"]
+        if (i["iteration"]>last_occurence):
+            last_occurence=i["iteration"]
     return last_occurence
 
 
-def insert_mat(matrix_,identifier,iteration,database):
+def insert_mat(matrix_,identifier,iteration,collection,database):
 
-    col=database["matrix"]
+    col=database[collection]
     matrix=toBin(matrix_)
-    col.insert_one({"matrix":matrix, "id":identifier, "itertion":iteration})
+    col.insert_one({"matrix":matrix, "id":identifier, "iteration":iteration})
 
     return
 
