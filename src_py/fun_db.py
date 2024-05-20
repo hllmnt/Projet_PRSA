@@ -56,6 +56,7 @@ def get_one_mat(iteration,runID,db):
     return matrix
 
 def get_mat(runID,db):
+    '''gets all the matrix from the corresponding run'''
     col=db[runID]
     mlist=col.find({})
     return mlist
