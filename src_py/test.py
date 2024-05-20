@@ -31,6 +31,7 @@ for i in range (int(tmax/dt)):
                 print(sol.psi)
                 print("De norme: ")
                 print(norm(sol.psi))
+                
         sol.generateNextStep_FTCS()
 
 
