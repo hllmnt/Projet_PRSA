@@ -18,7 +18,7 @@ private:
     arma::cx_mat psi_y_minus_dy;
 
 // Update the matrices declared above using the given matrix
-    void updateNeighbours(const arma::cx_mat&);
+    void updateShiftedPsi(const arma::cx_mat&);
 
 public:
     arma::cx_mat psi;

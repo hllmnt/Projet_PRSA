@@ -52,7 +52,7 @@ for i in range (int(tmax/dt)):
 dt = 0.005
 sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
 
-tmax = 10
+tmax = 100
 for i in range (int(tmax/dt)):
         if (i%1000 == 0):
                 print("\nPsi n°",i,"avec CTCS: ")
