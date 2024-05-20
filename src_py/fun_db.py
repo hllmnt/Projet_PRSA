@@ -32,6 +32,16 @@ def lastRunID(db):
         return 0
     return maxID["runID"]+1
 
+def checkExists(jsonParams,db):
+    '''Check if the run with the parameters jsonParams already exists in the collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    x = toBin(jsonParams)
+    query = {"json":x}
+    res = col.find_one(query)
+    if res == None:
+        return False, -1
+    return True, res["runID"]
+
 def createRun(jsonParams,db):
     '''Insert a new run in the collection JSON_COLLECTION'''
     col = db["JSON_COLLECTION"]

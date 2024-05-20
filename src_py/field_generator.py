@@ -99,15 +99,21 @@ db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
 
 json_params["potential"] = v
 
-runID = fdb.createRun(json_params, db)
+exists, runID = fdb.checkExists(json_params, db)
 
-print("Created run with ID: ", runID)
+if exists:
+    print("Run already exists with ID: ", runID)
 
-dx = x[1] - x[0]
-dy = y[1] - y[0]
+else:
+    runID = fdb.createRun(json_params, db)
 
-norm = np.sum(psi*np.conj(psi))*dx*dy
+    print("Created run with ID: ", runID)
 
-print("Norm: ", norm)
+    dx = x[1] - x[0]
+    dy = y[1] - y[0]
 
-fdb.insert_mat(psi, str(norm), str(0), str(runID), db)
+    norm = np.sum(psi*np.conj(psi))*dx*dy
+
+    print("Norm: ", norm)
+
+    fdb.insert_mat(psi, str(norm), str(0), str(runID), db)
