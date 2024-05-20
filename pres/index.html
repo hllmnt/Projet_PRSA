@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Projet INPS</title>
+    <title>Projet PRSA</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" type="text/css" href="core/fonts/mono.css"> 
     <link rel="stylesheet" type="text/css" href="core/css/animate.css"> 
@@ -22,7 +22,7 @@ Advanced Scientific Programming - Project
 ]
 
 .subtitle[
-Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - ENSIIE - 2023
+Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - ENSIIE - 2024
 ]
 
 
@@ -43,15 +43,13 @@ Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - [Retour au début](./index.
 class: middle
 # Plan
 
-1. Field Generator
+## 1. Field Generator
 
-2. Solver
+## 2. Solver
 
-3. Post-processor
+## 3. Post-processor
 
-4. Database
-
-5. Physical application
+## 4. Database
 
 ---
 
@@ -70,7 +68,8 @@ Projet/
 * src_py/
 	* field_generator.py
 	* initial_wave_function.py
-  * potential.py
+	* potential.py
+	* db_access.py
 * test/
   * test_solver.h
 * Makefile
@@ -89,9 +88,9 @@ Projet/
   
   ```python
   def hermite(n, x):
-    h = np.zeros((n+1, len(x)))
+    h = np.zeros((n+1, x.size))
 
-    h[0] = np.ones((1, len(x)))
+    h[0] = np.ones((1, x.size))
     if n == 0:
         return h
 
@@ -124,10 +123,10 @@ def solution2D(nx, ny, x, y, hx, hy, m=1, w=1, hbar=1):
     return psix @ psiy
 
 def solutionMix(deg_array_x, deg_array_y, proportion_array, x, y, m=1, w=1, hbar=1):
-psi = np.zeros((len(x), len(y)))
+psi = np.zeros((x.size, y.size))
 hx = hermite(np.max(deg_array_x), x)
 hy = hermite(np.max(deg_array_y), y)
-for i in range(len(deg_array_x)):
+for i in range(deg_array_x.size):
     psi += proportion_array[i] * solution2D(deg_array_x[i], deg_array_y[i], x, y, hx, hy, m, w, hbar)
 return psi
 
@@ -168,464 +167,220 @@ def from_formula(x, y, k, nx, ny):
     return k*(np.power(x, nx)+np.power(y, ny))   
 ```
 ---
+# Field generator
 
-# Basis
-## Calcul de zPart
+## Loading JSON
 
-`$$
-Z(z, n_z)
-\equiv
-         \frac{1}{\sqrt{b_z}}
-         \frac{1}{\sqrt{2^{n_z} \sqrt{\pi}n_z!}}
-         e^{-\frac{z^2}{2b_z^2}}H_{n_z}\left(\frac{z}{b_z}\right)
-$$`
+```python
+input_json = json.load(open(sys.argv[1]))
+nb_points_x = input_json["nb_points"]
+xmax = input_json["xmax"]
+x = np.linspace(-xmax, xmax, nb_points_x)
+m = input_json["m"]
+initial_wave_function = input_json["initial_wave_function"]
+initial_wave_function_type = initial_wave_function["type"]
+if initial_wave_function_type == "2D-HO":
+    deg_array_x = initial_wave_function["deg_array_x"]
+    deg_array_y = initial_wave_function["deg_array_y"]
+    proportion_array = initial_wave_function["proportion_array"]
+    w = initial_wave_function["w"]
+    if type(deg_array_x) == int:
+        deg_array_x = [deg_array_x]
+        deg_array_y = [deg_array_y]
+        proportion_array = [proportion_array]
+    psi = iwf.solutionMix(np.array(deg_array_x), np.array(deg_array_y), np.array(proportion_array), x, x)
+else:
+    x0 = initial_wave_function["x0"]
+    y0 = initial_wave_function["y0"]
+    kx = initial_wave_function["kx"]
+    ky = initial_wave_function["ky"]
+    w = initial_wave_function["w"]
+    psi = iwf.gaussian_packet(x, x0, x, y0, kx, ky, w)
+method = input_json["method"]
+potential = input_json["potential"]
+potential_type = potential["type"]
+if potential_type == "img":
+    path = potential["path"]
+    min = potential["min"]
+    max = potential["max"]
+    v = pt.from_img(path, min, max)
+else:
+    k = potential["k"]
+    nx = potential["nx"]
+    ny = potential["ny"]
+    v = pt.from_formula(x, x, k, nx, ny)  
+```
+---
 
-```cpp
-// @brief Calculates the Z functions which are the Z dependent part of psi,
-// without using precalculated hermite polynomial values.
-// Warning: hermite is calculated at each call of this method.
-// @param z z vector
-// @param nz quantum number not dependent on z
-// @return arma::vec containing the values of the Z part of the solutions.
-arma::vec Basis::zPart(arma::vec z, int nz){
-	Poly poly;
-	poly.calcHermite(nz+1, z/bz);
-	arma::vec Hnz = poly.hermite(nz);
+# Field generator
 
-	return (1/(pow(bz*pow(2,nz)*pow(M_PI,0.5)*tgamma(nz+1),0.5)))*arma::exp(-arma::pow(z,2)/(2*pow(bz,2)))%Hnz;
+## Example JSON
+
+```JSON
+{
+  "nb_points": 1001,
+  "xmax": 5,
+  "nb_steps": 1000,
+  "dt": 0.005,
+  "m": 1,
+  "initial_wave_function": {
+      "type": "2D-HO",
+      "deg_array_x": [0, 2, 3],
+      "deg_array_y": [0, 2, 3],
+      "proportion_array": [0.333, 0.333, 0.333],
+      "w": 1
+  },
+  "method": "FCTS",
+  "potential": {
+      "type": "img",
+      "path": "potential.png",
+      "min": 0,
+      "max": 1
+  }
 }
 ```
-```cpp
-// @brief Calculates the Z functions which are the Z dependent part of psi,
-// using precalculated hermite polynomial values.
-// @param z z vector
-// @param nz quantum number not dependent on z
-// @param hermite_nz vector containing the values of the hermite polynomial
-// @return arma::vec containing the values of the Z part of the solutions.
-arma::vec Basis::zPart(arma::vec z, int nz, arma::vec Hnz){
-	return (1/(pow(bz*pow(2,nz)*pow(M_PI,0.5)*tgamma(nz+1),0.5)))*arma::exp(-arma::pow(z,2)/(2*pow(bz,2)))%Hnz;
-} 
-```
+---
+
+# Field generator
+
+## TODO
+
+- Upload to database
+- Start a new calculation from an existing result
+
 
 ---
 
-# Basis
-## Calcul de rPart
+# Solver
 
-`$$
-R(r_\perp, m, n)
-         \equiv
-         \frac{1}{b_{\perp}\sqrt{\pi}}
-         \sqrt{\frac{n!}{(n+|m|)!}}
-         e^{-\frac{r_{\perp}^2}{2b_{\perp}^2}}
-         \left(\frac{r_{\perp}}{b_{\perp}}\right)^{|m|}
-         L_n^{|m|}\left(\frac{r_{\perp}^2}{b_{\perp}^2}\right).
-$$`
+## C++ implementation
 
 ```cpp
-// Method to calculate the R part of the solutions without using precalculated laguerre polynomial values.
-// Warning: laguerre is calculated at each call of this method.
-// @param rVec vector containing the values of r.
-// @param m quantum number.
-// @param n quantum number.
-// @return arma::vec containing the values of the R part of the solutions.
-arma::vec Basis::rPart(arma::vec rVec, int m, int n){
-  Poly poly;
-  poly.calcLaguerre(m+1, n+1, arma::pow(rVec, 2)/pow(br, 2));
+class Solver {
+  private:
+      arma::cx_mat V;
+      double dx;
+      double dy;
+      double dt;
+      double m;
   
-  arma::vec result = sqrt(tgamma(n+1)/tgamma(n+abs(m)+1))*arma::exp(-arma::pow(rVec, 2)/
-  (2*pow(br, 2)))%arma::pow(rVec/br, abs(m))%poly.laguerre(m, n)/(br*sqrt(M_PI));
-  return result;
-}
+      arma::cx_double i_dt_over_hb;
+      arma::cx_double i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
+      arma::cx_double i_dt_hb_over_2m_ddx;
+      arma::cx_double i_dt_hb_over_2m_ddy;
+  
+  public:
+      arma::cx_mat psi;
+  
+      Solver(arma::mat,arma::mat,arma::mat,arma::mat,double,double,double);
+  
+  // return the following state of the wave function
+      void generateNextStep_FTCS ();
+      void generateNextStep_BTCS ();
+      void generateNextStep_CTCS ();
+  };
 ```
-```cpp
-// Method to calculate the R part of the solutions using precalculated laguerre polynomial values.
-// @param rVec vector containing the values of r.
-// @param m quantum number.
-// @param n quantum number.
-// @param laguerre_m_n vector containing the values of the laguerre polynomial
-// @return arma::vec containing the values of the R part of the solutions.
-arma::vec Basis::rPart(arma::vec rVec, int m, int n, arma::vec laguerre_m_n){
-  arma::vec result = sqrt(tgamma(n+1)/tgamma(n+abs(m)+1))*arma::exp(-arma::pow(rVec, 2)/
-  (2*pow(br, 2)))%arma::pow(rVec/br, abs(m))%laguerre_m_n/(br*sqrt(M_PI));
-  return result;
-} 
-```
-
 ---
 
-#Basis
-## Calcul des $\psi$
+# Solver
 
-`$$
-\psi_{m,n,n_z}(r_\perp, \theta, z)
-        \equiv
-    Z(z, n_z)
-    .
-    R(r_\perp, m, n)
-    .
-         e^{im\theta}
-$$`
+## C++ implementation
 
 ```cpp
-// @brief Calculates the psi function
-// @param r r vector
-// @param z z vector
-// @param m quantum number
-// @param n quantum number
-// @param nz quantum number
-// @return arma::mat containing the values of the psi function
-arma::mat Basis::psi(arma::vec r, arma::vec z, int m, int n, int nz, arma::vec laguerre_m_n, arma::vec hermite_nz){
-	arma::vec rPartVec = rPart(r, m, n, laguerre_m_n);
-	arma::vec zPartVec = zPart(z, nz, hermite_nz);
-	arma::mat psiMat = rPartVec*(zPartVec.t());
-	return psiMat;
+Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, arma::mat V_imaginary, double grid_interval, double dt, double m) {
+  psi = arma::cx_mat(psi_real,psi_imaginary);
+  V = arma::cx_mat(V_real,V_imaginary);
+  dx = grid_interval;
+  dy = grid_interval;
+  dt = dt;Constantes
+  m = m;
+
+  i_dt_over_hb = arma::cx_double(0, dt / Constantes::hb);
+  i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = arma::cx_double(0, dt * Constantes::hb / (m * dx * dx)) + arma::cx_double(0, dt * Constantes::hb / (m * dy * dy));
+  i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * Constantes::hb / (2 * m * dx * dx));
+  i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb / (2 * m * dy * dy));
 }
 ```
 
 ---
 
-#Basis
-##Tests
+# Solver
 
-![](images/tests.png)
-
----
-
-#Calcul / Base
-```cpp
-  arma::mat rho;
-  rho.load("data/rho.arma", arma::arma_ascii);
-  //Initializing the indexes matrix to get rho values from m, n and n_z
-  arma::cube indexes = arma::zeros<arma::cube>(basis.mMax, basis.nMax.max(), basis.n_zMax.max());
-  int k = 0;
-  for (int m = 0; m < basis.mMax; m++)
-  {
-    for (int n = 0; n < basis.nMax(m); n++)
-    {
-      for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-      {
-        indexes(m, n, n_z) = k;
-        k++;
-      }
-    }
-  }
-
-  //Initializing the polynomials and precalculating them
-  Poly poly;
-  poly.calcLaguerre(basis.mMax, basis.nMax.max(), arma::pow(rVals, 2)/pow(basis.br, 2));
-  poly.calcHermite(basis.n_zMax.max(), zVals/basis.bz);
-```
-
----
-
-#Calcul / Algorithme naïf
-```cpp
-//V0 - naive algorithm
-arma::mat result0 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int mp = 0; mp < basis.mMax; mp++)
-      {
-        for (int np = 0; np < basis.nMax(mp); np++)
-        {
-          for (int n_zp = 0; n_zp < basis.n_zMax(mp, np); n_zp++)
-          {
-            j = indexes(mp, np, n_zp);
-            arma::mat psiA = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-            arma::mat psiB = basis.psi(rVals, zVals, mp, np, n_zp, poly.laguerre(mp, np), poly.hermite(n_zp));
-            result0 += psiA % psiB * rho(i, j);
-            
-          }
-        }
-      }
-    }
-  }
-}
-```
-.alert.hcenter[**3.589s**]
-
----
-
-#Calcul / Optimisation #1 m-symmétrie de $\eta$
-```cpp
-//V1 - removing calculations for ma != mb 
-arma::mat result1 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int np = 0; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {
- 
-          j = indexes(m, np, n_zp);
-          arma::mat psiA = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-          arma::mat psiB = basis.psi(rVals, zVals, m, np, n_zp, poly.laguerre(m, np), poly.hermite(n_zp));
-          result1 += psiA % psiB * rho(i, j);
-        }
-      }
-    }
-  }
-}
-```
-.alert.hcenter[**0.398s** | Gain: **9.01**]
-
----
-
-#Calcul / Optimisation #2 Décallage dans les boucles
-```cpp
-//V2 - moving the calculation of the first psi outside of the second loop
-arma::mat result2 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      arma::mat psiA = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-      for (int np = 0; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {   
-          j = indexes(m, np, n_zp);
-          arma::mat psiB = basis.psi(rVals, zVals, m, np, n_zp, poly.laguerre(m, np), poly.hermite(n_zp));
-          result2 += psiA % psiB * rho(i, j);
-        }
-      }
-    }
-  }
-}
-```
-.alert.hcenter[**0.294s** | Gain: **1.35**]
-
----
-
-#Calcul / Optimisation #3 Précalcul des $\psi$
-```cpp
-//V3 - precalculating psi
-arma::cube psi_precalculate(rVals.n_rows, zVals.n_rows, basis.mMax*basis.nMax.max()*basis.n_zMax.max());
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      psi_precalculate.slice(indexes(m, n, n_z)) = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-    }
-  }
-}
-arma::mat result3 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int np = 0; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {   
-          j = indexes(m, np, n_zp);
-          result3 += psi_precalculate.slice(i) % psi_precalculate.slice(j) * rho(i, j);
-        }
-      }
-    }
-  }
-}
-```
-.alert.hcenter[**0.210s** | Gain: **1.39**]
-
----
-
-#Calcul / Optimisation #4 Factorisation de $\psi\_a$
-```cpp
-//V4 - Factorizing by psiA
-arma::cube psi_precalculate_v4(rVals.n_rows, zVals.n_rows, basis.mMax*basis.nMax.max()*basis.n_zMax.max());
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      psi_precalculate_v4.slice(indexes(m, n, n_z)) = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-    }
-  }
-}
-arma::mat result4 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-arma::mat result_temp = arma::zeros(rVals.n_rows, zVals.n_rows);
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int np = 0; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {   
-          j = indexes(m, np, n_zp);
-          result_temp += psi_precalculate_v4.slice(j) * rho(i, j);
-        }
-      }
-      result4 += psi_precalculate_v4.slice(i)%result_temp;
-      result_temp.zeros();
-    }
-  }
-}
-```
-.alert.hcenter[**0.114s** | Gain: **1.84**]
-
----
-
-#Calcul / Optimisation #5 Symmétrie de $\rho$
+## C++ implementation
 
 ```cpp
-//V5 - Using symmetry to reduce the number of calculations
-arma::cube psi_precalculate_v5(rVals.n_rows, zVals.n_rows, basis.mMax*basis.nMax.max()*basis.n_zMax.max());
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      psi_precalculate_v5.slice(indexes(m, n, n_z)) = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-    }
-  }
-}
-arma::mat result5 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-arma::mat result_temp2 = arma::zeros(rVals.n_rows, zVals.n_rows);
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int np = 0; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {   
-          j = indexes(m, np, n_zp);
-          if (i < j)
-          result_temp2 += psi_precalculate_v5.slice(j) * rho(i, j);
-        }
-      }
-      result5 += 2*psi_precalculate_v5.slice(i)%result_temp2; //adding for both i, j and j, i
-      result_temp2.zeros();
-      result5 += psi_precalculate_v5.slice(i) % psi_precalculate_v5.slice(i) * rho(i, i); //adding for i = j
-    }
-  }
+void Solver::generateNextStep_FTCS () {
+  arma::colvec col_zeros = arma::colvec(psi.n_rows,arma::fill::zeros);
+  arma::cx_colvec cx_col_zeros = arma::cx_colvec(col_zeros,col_zeros);
+
+  arma::cx_mat psi_x_plus_dx = psi.submat(0,1,-1,-1);
+  psi_x_plus_dx.insert_cols(-1,cx_col_zeros);
+
+  arma::cx_mat psi_x_minus_dx = psi.submat(0,0,-2,-1);
+  psi_x_minus_dx.insert_cols(0,cx_col_zeros);
+
+  arma::rowvec row_zeros = arma::rowvec(psi.n_rows,arma::fill::zeros);
+  arma::cx_rowvec cx_row_zeros = arma::cx_rowvec(row_zeros,row_zeros);
+
+  arma::cx_mat psi_y_plus_dy = psi.submat(0,1,-1,-1);
+  psi_y_plus_dy.insert_rows(-1,cx_row_zeros);
+
+  arma::cx_mat psi_y_minus_dy = psi.submat(0,0,-1,-2);
+  psi_y_minus_dy.insert_rows(0,cx_row_zeros);
+
+  psi += -(i_dt_over_hb * V + i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy) * psi
+          + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+          + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
 }
 ```
-.alert.hcenter[**0.065s** | Gain: **1.76**]
 
 ---
 
-#Calcul / Optimisation #6 Moins de if
+# Solver
 
-```cpp
-//V6 - Like V5 but without if statement
-arma::cube psi_precalculate_v6(rVals.n_rows, zVals.n_rows, basis.mMax*basis.nMax.max()*basis.n_zMax.max());
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      psi_precalculate_v6.slice(indexes(m, n, n_z)) = basis.psi(rVals, zVals, m,  n,  n_z, poly.laguerre(m, n), poly.hermite(n_z));
-    }
-  }
-}
-arma::mat result6 = arma::zeros(rVals.n_rows, zVals.n_rows); // number of points on r- and z- axes
-arma::mat result_temp3 = arma::zeros(rVals.n_rows, zVals.n_rows);
-for (int m = 0; m < basis.mMax; m++)
-{
-  for (int n = 0; n < basis.nMax(m); n++)
-  {
-    for (int n_z = 0; n_z < basis.n_zMax(m, n); n_z++)
-    {
-      i = indexes(m, n, n_z);
-      for (int np = n; np < basis.nMax(m); np++)
-      {
-        for (int n_zp = np == n ? n_z + 1 : 0; n_zp < basis.n_zMax(m, np); n_zp++)
-        {   
-          j = indexes(m, np, n_zp);
-          result_temp3 += psi_precalculate_v6.slice(j) * rho(i, j);
-        }
-      }
-      result6 += 2*psi_precalculate_v6.slice(i)%result_temp3; //adding for both i, j and j, i
-      result_temp3.zeros();
-      result6 += psi_precalculate_v6.slice(i) % psi_precalculate_v6.slice(i) * rho(i, i); //adding for i = j
-    }
-  }
-}
-```
-.alert.hcenter[**0.065s** | Gain: **1.00**]
+## Ce qu'il reste à faire
 
----
-
-#Calcul / Optimisation Récapitulatif
-
-![](images/optimisation.png)
-
----
-
-#Calcul / Optimisation Récapitulatif
-## Avec option -O3 dans la compilation
-![](images/tempso3.png)
-
----
-
-#Résultats 
-## Rotation
-```cpp
-arma::cube result3D;
-result3D = arma::cube(2*result.n_rows-1, 2*result.n_rows-1, result.n_cols, arma::fill::zeros);
-for (int i = 0; i<(int)result.n_cols; i++)
-{
-  for(int j = 0; j<2*(int)result.n_rows-1; j++)
-  {
-    for(int k = 0; k<2*(int)result.n_rows-1; k++)
-    {
-      double d = sqrt(pow((int)result.n_rows - k,2) + pow((int)result.n_rows - j,2));
-      
-      int l = (int)d;	
-      if(l>(int)result.n_rows-1){
-        l=result.n_rows-1;
-      }
-      result3D(j,k,i)=result(l,i);
-
-    }
-  }
-}
-result.save("result.csv", arma::csv_ascii); // save the 2D result in a csv file
-```
-
----
-#Résultats
-## Tranche 2D
-![](images/2.png)
+- Lecture/Ecriture sur la base de données
+- Capacité de redémarrer de la dernière étape d'une simulation
+- Calcul et stockage de la norme pour pouvoir en traquer l'évolution
 
 
 ---
-#Résultats
-## 3D
-.hcenter.w80[![](images/vis.png)]
+
+# Post-processor
+
+- Takes a run ID as a parameter
+
+- Gets each matrix with this run ID back from the database
+
+- Creates a .vtk file for each matrix
 
 ---
+
+# Database
+
+- Use of MongoDB
+- Default configuration (no need of further configuration for this project)
+
+## Arborescence:
+
+.alert.tree.hcenter[
+Database
+* Collection JSON
+	* JSON object
+	* Run ID
+* Collection Matrix
+	* Numpy matrix
+	* Run ID
+	* Number of iteration of the matrix
+* Collection Potentials
+	* Numpy matrix
+	* Run ID
+]
+
+
+---
+
 class: hcenter, middle
 # Conclusion
 
