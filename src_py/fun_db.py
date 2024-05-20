@@ -4,61 +4,73 @@ import pickle
 import json
 import hashlib
 
+db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
+
 def toBin(x):
+    '''Returns the data stored in x in a binary form'''
     return pickle.dumps(x)
 
 
 def fromBin(x):
+    '''Returns the data stored in binary form in x in its original form'''
     return pickle.loads(x)
 
+def lastStep(runID,db):
+    '''Get the value lastStepID from collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    query = {"runID":runID}
+    jlist = col.find(query)
+    if len(jlist) == 0:
+        return -1
+    return jlist[0]["lastStepID"]
 
-def check_json(json_,database):
+def lastRunID(db):
+    '''Get the last runID from collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    maxID = col.find_one(sort=[("runID", -1)])
+    if maxID == None:
+        return 0
+    return maxID["runID"]+1
 
-    json=toBin(json_)
-    col=database["json"]
-    query={"json":json}
-    jlist=col.find(query)
-    len=0
-    for i in jlist:
-        len+=1
-    if(len==1):
-        return True
-    return False
+def checkExists(jsonParams,db):
+    '''Check if the run with the parameters jsonParams already exists in the collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    x = toBin(jsonParams)
+    query = {"json":x}
+    res = col.find_one(query)
+    if res == None:
+        return False, -1
+    return True, res["runID"]
 
-
-def insert_json(json_,identifier,database):
-    
-    json=toBin(json_)
-    col=database["json"]
-    #identifier=hashlib.sha256(json).hexdigest()
-    
-    col.insert_one({"json":json, "id":identifier})
-    return 
-
-
-def check_last_mat(identifier,database):
-
-    col=database["matrix"]
-    query={"id":identifier}
-    matlist=col.find(query)
-    last_occurence=-2
-    for i in matlist:
-        if (i["itertion"]>last_occurence):
-            last_occurence=i["itertion"]
-    return last_occurence
+def createRun(jsonParams,db):
+    '''Insert a new run in the collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    runID = lastRunID(db)
+    x = toBin(jsonParams)
+    col.insert_one({"runID":runID, "json":x, "lastStepID":0})
+    return runID
 
 
-def insert_mat(matrix_,identifier,iteration,database):
-
-    col=database["matrix"]
+def insert_mat(matrix_,norm,iteration,runID,db):
+    '''Inserts the matrix in the database'''
+    col=db["run_{}".format(runID)]
     matrix=toBin(matrix_)
-    col.insert_one({"matrix":matrix, "id":identifier, "itertion":iteration})
-
+    col.insert_one({"matrix":matrix, "iteration":iteration, "norm":norm})
     return
 
+def get_one_mat(iteration,runID,db):
+    '''gets one matrix from the corresponding run from the db'''
+    col=db["run_{}".format(runID)]
+    query={"iteration":iteration}
+    matrix=col.find_one(query)
+    return matrix
 
-def insert_potential(potential,identifier,database):
+def get_mat(runID,db):
+    col=db["run_{}".format(runID)]
+    mlist=col.find({})
+    return mlist
 
-    insert_mat(potential,identifier,-1,database)
 
-    return
+
+
+

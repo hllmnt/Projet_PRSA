@@ -1,23 +1,6 @@
 import numpy as np
 import math
-
-
-# Function to calculate the hermite polynomials
-# @param n: int - the order of the hermite polynomial
-# @param x: numpy array - the values at which to evaluate the hermite polynomial
-# @return: numpy array - the values of the hermite polynomial at the given x keeping each order in a different row
-def hermite(n, x):
-    h = np.zeros((n+1, len(x)))
-
-    h[0] = np.ones((1, len(x)))
-    if n == 0:
-        return h
-
-    h[1] = 2*x
-    
-    for i in range(2, n+1):
-        h[i] = 2*x*h[i-1] - 2*(i-1)*h[i-2]
-    return h
+from scipy import special
 
 # Function to calculate the solution to the harmonic oscillator
 # @param n: int - the order of the harmonic oscillator
@@ -27,7 +10,7 @@ def hermite(n, x):
 def solution1D(n, x, h, m=1, w=1, hbar=1):
     # Calculate the harmonic oscillator
     x = math.pow(m*w/(hbar*math.pi), 0.25) * np.exp(-m*w*x*x/(2*hbar)).reshape(1, len(x))
-    psi = x * h[n] / math.sqrt(math.pow(2, n) * math.factorial(n))
+    psi = x * h / math.sqrt(math.pow(2, n) * math.factorial(n))
     return psi
 
 def solution2D(nx, ny, x, y, hx, hy, m=1, w=1, hbar=1):
@@ -37,9 +20,9 @@ def solution2D(nx, ny, x, y, hx, hy, m=1, w=1, hbar=1):
 
 def solutionMix(deg_array_x, deg_array_y, proportion_array, x, y, m=1, w=1, hbar=1):
     psi = np.zeros((x.size, y.size))
-    hx = hermite(np.max(deg_array_x), x)
-    hy = hermite(np.max(deg_array_y), y)
     for i in range(deg_array_x.size):
+        hx = special.hermite(deg_array_x[i])(x)
+        hy = special.hermite(deg_array_y[i])(y)
         psi += proportion_array[i] * solution2D(deg_array_x[i], deg_array_y[i], x, y, hx, hy, m, w, hbar)
     return psi/np.sqrt(np.sum(proportion_array*proportion_array))
 
