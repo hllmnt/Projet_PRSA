@@ -41,15 +41,9 @@ public:
 
 static class TestDescription_suite_TestMethods_testFtcs3 : public CxxTest::RealTestDescription {
 public:
- TestDescription_suite_TestMethods_testFtcs3() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 62, "testFtcs3" ) {}
+ TestDescription_suite_TestMethods_testFtcs3() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 59, "testFtcs3" ) {}
  void runTest() { suite_TestMethods.testFtcs3(); }
 } testDescription_suite_TestMethods_testFtcs3;
-
-static class TestDescription_suite_TestMethods_testFtcs4 : public CxxTest::RealTestDescription {
-public:
- TestDescription_suite_TestMethods_testFtcs4() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 86, "testFtcs4" ) {}
- void runTest() { suite_TestMethods.testFtcs4(); }
-} testDescription_suite_TestMethods_testFtcs4;
 
 #include <cxxtest/Root.cpp>
 const char* CxxTest::RealWorldDescription::_worldName = "cxxtest";

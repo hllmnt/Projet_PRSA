@@ -9,10 +9,9 @@ private:
     arma::cx_mat i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
     arma::cx_double i_dt_hb_over_2m_ddx;
     arma::cx_double i_dt_hb_over_2m_ddy;
-    
-// useful vectors that only need to be instantiated once
-    arma::cx_rowvec cx_row_zeros;
-    arma::cx_colvec cx_col_zeros;
+
+// psi encercled by zeroes to make the submat operations in the solver more efficient
+    arma::cx_mat extendedPsi;
 
 public:
     arma::cx_mat psi;

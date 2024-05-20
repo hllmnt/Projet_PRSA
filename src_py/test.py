@@ -4,9 +4,20 @@ sys.path.append("~/Documents/PRSA/projet/bindings")
 import solver
 import numpy as np
 
+def norm (matrix):
+        return np.sum(matrix * np.conjugate(matrix)).real
+
+def normalize (matrix):
+        return matrix / np.sqrt(norm(matrix))
+               
+
+
 psi = np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F') \
         + 1j * np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F')
-V = np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F')
+
+psi = normalize(psi)
+
+V = np.array([[0., 0.], [0., 0.]], dtype = np.complex128, order = 'F')
 dx = 0.1
 dy = 0.1
 dt = 0.01
@@ -14,13 +25,13 @@ m = 1.0
 
 sol = solver.Solver(psi, V, dx, dy, dt, m)
 
-print("\nPsi :")
-print(sol.psi)
+for i in range (10):
+        print("\nPsi n°",i,": ")
+        print(sol.psi)
+        print("De norme: ")
+        print(norm(sol.psi))
+        sol.generateNextStep_FTCS()
 
-sol.generateNextStep_FTCS()
-
-print("\nRésultat après une étape de FTCS :")
-print(sol.psi)
 
 
 
