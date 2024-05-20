@@ -41,10 +41,26 @@ def createRun(jsonParams,db):
     return runID
 
 
-def insert_mat(matrix_,norm,iteration,identifier,db):
+def insert_mat(matrix_,norm,iteration,runID,db):
     '''Inserts the matrix in the database'''
-    col=db[identifier]
+    col=db[runID]
     matrix=toBin(matrix_)
     col.insert_one({"matrix":matrix, "iteration":iteration, "norm":norm})
     return
+
+def get_one_mat(iteration,runID,db):
+    '''gets one matrix from the corresponding run from the db'''
+    col=db[runID]
+    query={"iteration":iteration}
+    matrix=col.find_one(query)
+    return matrix
+
+def get_mat(runID,db):
+    col=db[runID]
+    mlist=col.find({})
+    return mlist
+
+
+
+
 
