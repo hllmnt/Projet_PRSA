@@ -40,18 +40,6 @@ def createRun(jsonParams,db):
     col.insert_one({"runID":runID, "json":x, "lastStepID":0})
     return runID
 
-def check_last_mat(identifier,db):
-    '''checks what was the last iteration in a run and returns its number'''
-    col=db[identifier]
-    matlist=col.find({})
-    last_occurence=-2
-    for i in matlist:
-        if (i["iteration"]>last_occurence):
-            last_occurence=i["iteration"]
-        if (i["iteration"]>last_occurence):
-            last_occurence=i["iteration"]
-    return last_occurence
-
 
 def insert_mat(matrix_,norm,iteration,identifier,db):
     '''Inserts the matrix in the database'''
@@ -60,9 +48,3 @@ def insert_mat(matrix_,norm,iteration,identifier,db):
     col.insert_one({"matrix":matrix, "iteration":iteration, "norm":norm})
     return
 
-
-def insert_potential(potential,norm,identifier,db):
-    '''Inserts a potentials matrix into the database'''
-    insert_mat(potential,norm,-1,identifier,db)
-
-    return
