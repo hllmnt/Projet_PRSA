@@ -56,25 +56,17 @@ void Solver::generateNextStep_CTCS () {
 
     double epsilon = 1.0e-10;
     
-    arma::cx_mat lastGuessedPsi_x_plus_dx;
-    arma::cx_mat lastGuessedPsi_x_minus_dx;
-    arma::cx_mat lastGuessedPsi_y_plus_dy;
-    arma::cx_mat lastGuessedPsi_y_minus_dy;
-
     do {
         lastGuessedPsi = newGuessedPsi;
         updateNeighbours(lastGuessedPsi);
-
-        lastGuessedPsi_x_plus_dx = psi_x_plus_dx;
-        lastGuessedPsi_x_minus_dx = psi_x_minus_dx;
-        lastGuessedPsi_y_plus_dy = psi_y_plus_dy;
-        lastGuessedPsi_y_minus_dy = psi_y_minus_dy;
+        newGuessedPsi = psi + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
+                                    + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                                    + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
 
         updateNeighbours(psi);
-
-        newGuessedPsi = psi + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
-                                    + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx + lastGuessedPsi_x_plus_dx + lastGuessedPsi_x_minus_dx)
-                                    + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy + lastGuessedPsi_y_plus_dy + lastGuessedPsi_y_minus_dy));
+        newGuessedPsi += 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
+                            + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                            + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
     } 
     while (arma::norm(newGuessedPsi - lastGuessedPsi) > epsilon);
 

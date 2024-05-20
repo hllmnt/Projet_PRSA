@@ -9,7 +9,6 @@ def norm (matrix):
 
 def normalize (matrix):
         return matrix / np.sqrt(norm(matrix))
-               
 
 
 psi =   np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 0.0, 0.1, 0.2], [0.3, 0.4, 0.5, 0.6]], dtype=np.complex128, order='F') \
@@ -31,7 +30,7 @@ for i in range (int(tmax/dt)):
                 print(sol.psi)
                 print("De norme: ")
                 print(norm(sol.psi))
-                
+
         sol.generateNextStep_FTCS()
 
 
