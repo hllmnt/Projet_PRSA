@@ -16,36 +16,37 @@ input_json = json.load(open(sys.argv[1]))
 for key, value in input_json.items():
     json_params[key] = value
 
-initial_wave_function = input_json.get("initial_wave_function")
-iwf_type = "null"
+initial_wave_function = json_params.get("initial_wave_function")
 
-if initial_wave_function:
+iwf_type = initial_wave_function.get("type")
 
-    iwf_type = initial_wave_function.get("type")
+if iwf_type == "2D-HO":
+    initial_wave_function = json.load(open(default_path + "/json/initial_wave_function/default_2D-HO.json"))
 
-    if iwf_type == "2D-HO":
-        initial_wave_function = json.load(open(default_path + "/json/initial_wave_function/default_2D-HO.json"))
+elif iwf_type == "gaussian":
+    initial_wave_function = json.load(open(default_path + "/json/initial_wave_function/default_gaussian.json"))
 
-    else:
-        initial_wave_function = json.load(open(default_path + "/json/initial_wave_function/default_gaussian.json"))
+else:
+    raise ValueError("Invalid initial wave function type")
 
+if input_json.get("initial_wave_function"):
     for key, value in input_json["initial_wave_function"].items():
         initial_wave_function[key] = value
 
 potential = json_params.get("potential")
-potential_type = "null"
 
-if potential:
-    potential_type = potential.get("type")
+potential_type = potential.get("type")
 
-    if potential_type == "img":
-        if potential.get("path") is None:
-            raise ValueError("Path to image not provided")
-        potential = json.load(open(default_path + "/json/potential/default_img.json"))
+if potential_type == "img":
+    if potential.get("path") is None:
+        raise ValueError("Path to image not provided")
+    potential = json.load(open(default_path + "/json/potential/default_img.json"))
 
-    elif potential_type == "formula":
-        potential = json.load(open(default_path + "/json/potential/default_formula.json"))
-    
+elif potential_type == "formula":
+    potential = json.load(open(default_path + "/json/potential/default_formula.json"))
+
+
+if input_json.get("potential"):
     for key, value in input_json["potential"].items():
         potential[key] = value
 
@@ -66,7 +67,7 @@ if iwf_type == "2D-HO":
     if type(deg_x) == int:
         deg_x = [deg_x]
         deg_y = [deg_y]
-    psi = iwf.solutionMix(np.array(deg_x), np.array(deg_y), np.array(proportion_array), x, y)
+    psi = iwf.solutionMix(np.array(deg_x), np.array(deg_y), np.array(proportion_array), x, y, w)
 
 elif iwf_type == "gaussian":
     x0 = initial_wave_function["x0"]
@@ -75,9 +76,6 @@ elif iwf_type == "gaussian":
     ky = initial_wave_function["ky"]
     w = initial_wave_function["w"]
     psi = iwf.gaussian_packet(x, x0, y, y0, kx, ky, w)
-
-else:
-    raise ValueError("Invalid initial wave function type")
 
 
 if potential_type == "img":
@@ -99,5 +97,10 @@ fig = pl.figure()
 ax = fig.add_subplot(111, projection='3d')
 X, Y = np.meshgrid(x, y)
 #plotting with colorbar
-pl.colorbar(ax.plot_surface(X, Y, psi+v, cmap='viridis'))
+pl.colorbar(ax.plot_surface(X, Y, np.abs(psi), cmap='viridis'))
+pl.show()
+
+# plot potential (matshow)
+
+pl.matshow(v)
 pl.show()
