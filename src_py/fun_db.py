@@ -2,11 +2,13 @@ import pymongo
 import numpy as np
 import pickle
 import json
+import hashlib
 
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 
 def toBin(x):
     return pickle.dumps(x)
+
 
 def fromBin(x):
     return pickle.loads(x)
@@ -42,32 +44,51 @@ def createRun(jsonParams):
 
 def check_json(json_,database):
 
-    x=toBin(json_)
+    json=toBin(json_)
     col=database["json"]
-    query={"json":x}
+    query={"json":json}
     jlist=col.find(query)
-    if(len(jlist)==1):
+    len=0
+    for i in jlist:
+        len+=1
+    if(len==1):
         return True
     return False
 
+
 def insert_json(json_,identifier,database):
+    
+    json=toBin(json_)
+    col=database["json"]
+    #identifier=hashlib.sha256(json).hexdigest()
+    
+    col.insert_one({"json":json, "id":identifier})
+    return 
 
-    return #TODO
-
-def check_potential(identifier,database):
-
-    return #TODO
 
 def check_last_mat(identifier,database):
 
-    return #TODO
+    col=database["matrix"]
+    query={"id":identifier}
+    matlist=col.find(query)
+    last_occurence=-2
+    for i in matlist:
+        if (i["itertion"]>last_occurence):
+            last_occurence=i["itertion"]
+    return last_occurence
 
-def insert_mat(matrix,identifier,iteration,database):
 
-    return #TODO
+def insert_mat(matrix_,identifier,iteration,database):
 
-def insert_potential(matrix,identifier,database):
+    col=database["matrix"]
+    matrix=toBin(matrix_)
+    col.insert_one({"matrix":matrix, "id":identifier, "itertion":iteration})
 
-    return #TODO
+    return
 
 
+def insert_potential(potential,identifier,database):
+
+    insert_mat(potential,identifier,-1,database)
+
+    return
