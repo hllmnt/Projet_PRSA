@@ -3,7 +3,8 @@ import numpy as np
 import potential as pt
 import sys
 import json
-import matplotlib.pyplot as pl
+import fun_db as fdb
+import pymongo
 
 
 
@@ -93,14 +94,20 @@ elif potential_type == "formula":
 else:
     v = np.zeros((nb_points_x, nb_points_y))
 
-fig = pl.figure()
-ax = fig.add_subplot(111, projection='3d')
-X, Y = np.meshgrid(x, y)
-#plotting with colorbar
-pl.colorbar(ax.plot_surface(X, Y, np.abs(psi), cmap='viridis'))
-pl.show()
 
-# plot potential (matshow)
+db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
 
-pl.matshow(v)
-pl.show()
+json_params["potential"] = v
+
+runID = fdb.createRun(json_params, db)
+
+print("Created run with ID: ", runID)
+
+dx = x[1] - x[0]
+dy = y[1] - y[0]
+
+norm = np.sum(psi*np.conj(psi))*dx*dy
+
+print("Norm: ", norm)
+
+fdb.insert_mat(psi, str(norm), str(0), str(runID), db)
