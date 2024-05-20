@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Projet PRSA</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" type="text/css" href="core/fonts/mono.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/animate.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/style_core.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/mermaid.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/gitgraph.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/style_ensiie.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/katex.css"> 
+    <link rel="stylesheet" type="text/css" href="core/css/asciinema-player.css">
+
+  </head>
+  <body>
+    <textarea id="source" readonly>
+class: titlepage
+
+.title[
+Advanced Scientific Programming - Project
+]
+
+.subtitle[
+Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - ENSIIE - 2024
+]
+
+
+.footnote[
+[Retour au début](./index.html)
+]
+
+---
+layout: true
+class: animated fadeIn middle numbers
+
+.footnote[
+Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - [Retour au début](./index.html)
+]
+
+---
+
+class: middle
+# Plan
+
+## 1. Field Generator
+
+## 2. Solver
+
+## 3. Post-processor
+
+## 4. Database
+
+---
+
+# Arborescence
+
+.alert.tree.hcenter[
+Projet/
+* bin/
+* bindings/
+* headers/
+	* constantes.h
+	* solver.h
+* obj/
+* src_cpp/
+	* solver.cpp
+* src_py/
+	* field_generator.py
+	* initial_wave_function.py
+	* potential.py
+	* db_access.py
+* test/
+  * test_solver.h
+* Makefile
+]
+
+---
+
+  # Field generator
+
+  ## Initial wave function
+
+  ### Hermite
+
+  On utilise la relation de récurrence:
+  `$$H_{0}(z)=1 $$` `$$H_{1}(z)=2z$$` `$$H_{n+1}(z)=2zH_{n}(z)-2nH_{n-1}(z)$$`
+  
+  ```python
+  def hermite(n, x):
+    h = np.zeros((n+1, x.size))
+
+    h[0] = np.ones((1, x.size))
+    if n == 0:
+        return h
+
+    h[1] = 2*x
+    
+    for i in range(2, n+1):
+        h[i] = 2*x*h[i-1] - 2*(i-1)*h[i-2]
+    return h
+  
+  ```
+
+---
+#Field generator
+## 2D-HO
+
+`$$\forall n_x\ge 0,\, \forall n_y\ge 0,\, \psi_{n_x,n_y}(x,y)=\psi_{n_x}(x).\psi_{n_y}(y),$$`
+with
+`$$\forall u \in \{x,y\},\hspace{5mm}\psi_{n_u}(u) = \frac{1}{\sqrt{2^{n_u} n_u!}}\left(\frac{m\omega}{\pi\hbar}\right)^{1/4}e^{-\frac{m\omega u^2}{2\hbar}}H_{n_u}\left(\sqrt{\frac{m\omega}{\hbar}} . u\right).$$`
+
+
+```python
+def solution1D(n, x, h, m=1, w=1, hbar=1):
+    x = math.pow(m*w/(hbar*math.pi), 0.25) * np.exp(-m*w*x*x/(2*hbar)).reshape(1, len(x))
+    psi = x * h[n] / math.sqrt(math.pow(2, n) * math.factorial(n))
+    return psi
+
+def solution2D(nx, ny, x, y, hx, hy, m=1, w=1, hbar=1):
+    psix = np.transpose(solution1D(nx, x, hx, m, w, hbar))
+    psiy = solution1D(ny, y, hy, m, w, hbar)
+    return psix @ psiy
+
+def solutionMix(deg_array_x, deg_array_y, proportion_array, x, y, m=1, w=1, hbar=1):
+psi = np.zeros((x.size, y.size))
+hx = hermite(np.max(deg_array_x), x)
+hy = hermite(np.max(deg_array_y), y)
+for i in range(deg_array_x.size):
+    psi += proportion_array[i] * solution2D(deg_array_x[i], deg_array_y[i], x, y, hx, hy, m, w, hbar)
+return psi
+
+```
+
+---
+#Field generator
+## Gaussian wave packet with initial speed
+
+`$$
+\psi_0(x,y) \equiv A.e^{-\left[\frac{(x - x_0)^2+(y - y_0)^2}{w^2}\right]}.e^{i\left[k_x.x+k_y.y\right]}
+$$`
+
+```python
+def gaussian_packet(x, x0, y, y0, kx, ky, w=1):
+    resx = np.transpose(np.exp(-((x-x0)**2)/(w**2)) * np.exp(1j*(kx*x)).reshape(1, len(x)))
+    resy = np.exp(-((y-y0)**2)/(w**2)) * np.exp(1j*(ky*y)).reshape(1, len(y))
+    res = resx @ resy
+    return np.sqrt(2) * res / (w * np.sqrt(np.pi))
+
+```
+
+---
+
+# Field generator
+
+##Potential
+
+```python
+def from_img(path, min, max):
+    img = np.asarray(Image.open(path).convert('L'), dtype=np.float64)
+    v = img*(max-min)/255 + min
+    return v
+
+def from_formula(x, y, k, nx, ny):
+    x = np.tile(x, (len(y), 1)).T
+    y = np.tile(y, (len(x[0]), 1))
+    return k*(np.power(x, nx)+np.power(y, ny))   
+```
+---
+# Field generator
+
+## Loading JSON
+
+```python
+input_json = json.load(open(sys.argv[1]))
+nb_points_x = input_json["nb_points"]
+xmax = input_json["xmax"]
+x = np.linspace(-xmax, xmax, nb_points_x)
+m = input_json["m"]
+initial_wave_function = input_json["initial_wave_function"]
+initial_wave_function_type = initial_wave_function["type"]
+if initial_wave_function_type == "2D-HO":
+    deg_array_x = initial_wave_function["deg_array_x"]
+    deg_array_y = initial_wave_function["deg_array_y"]
+    proportion_array = initial_wave_function["proportion_array"]
+    w = initial_wave_function["w"]
+    if type(deg_array_x) == int:
+        deg_array_x = [deg_array_x]
+        deg_array_y = [deg_array_y]
+        proportion_array = [proportion_array]
+    psi = iwf.solutionMix(np.array(deg_array_x), np.array(deg_array_y), np.array(proportion_array), x, x)
+else:
+    x0 = initial_wave_function["x0"]
+    y0 = initial_wave_function["y0"]
+    kx = initial_wave_function["kx"]
+    ky = initial_wave_function["ky"]
+    w = initial_wave_function["w"]
+    psi = iwf.gaussian_packet(x, x0, x, y0, kx, ky, w)
+method = input_json["method"]
+potential = input_json["potential"]
+potential_type = potential["type"]
+if potential_type == "img":
+    path = potential["path"]
+    min = potential["min"]
+    max = potential["max"]
+    v = pt.from_img(path, min, max)
+else:
+    k = potential["k"]
+    nx = potential["nx"]
+    ny = potential["ny"]
+    v = pt.from_formula(x, x, k, nx, ny)  
+```
+---
+
+# Field generator
+
+## Example JSON
+
+```JSON
+{
+  "nb_points": 1001,
+  "xmax": 5,
+  "nb_steps": 1000,
+  "dt": 0.005,
+  "m": 1,
+  "initial_wave_function": {
+      "type": "2D-HO",
+      "deg_array_x": [0, 2, 3],
+      "deg_array_y": [0, 2, 3],
+      "proportion_array": [0.333, 0.333, 0.333],
+      "w": 1
+  },
+  "method": "FCTS",
+  "potential": {
+      "type": "img",
+      "path": "potential.png",
+      "min": 0,
+      "max": 1
+  }
+}
+```
+---
+
+# Field generator
+
+## TODO
+
+- Upload to database
+- Start a new calculation from an existing result
+
+
+---
+
+# Solver
+
+## C++ implementation
+
+```cpp
+class Solver {
+  private:
+      arma::cx_mat V;
+      double dx;
+      double dy;
+      double dt;
+      double m;
+  
+      arma::cx_double i_dt_over_hb;
+      arma::cx_double i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
+      arma::cx_double i_dt_hb_over_2m_ddx;
+      arma::cx_double i_dt_hb_over_2m_ddy;
+  
+  public:
+      arma::cx_mat psi;
+  
+      Solver(arma::mat,arma::mat,arma::mat,arma::mat,double,double,double);
+  
+  // return the following state of the wave function
+      void generateNextStep_FTCS ();
+      void generateNextStep_BTCS ();
+      void generateNextStep_CTCS ();
+  };
+```
+---
+
+# Solver
+
+## C++ implementation
+
+```cpp
+Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, arma::mat V_imaginary, double grid_interval, double dt, double m) {
+  psi = arma::cx_mat(psi_real,psi_imaginary);
+  V = arma::cx_mat(V_real,V_imaginary);
+  dx = grid_interval;
+  dy = grid_interval;
+  dt = dt;Constantes
+  m = m;
+
+  i_dt_over_hb = arma::cx_double(0, dt / Constantes::hb);
+  i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = arma::cx_double(0, dt * Constantes::hb / (m * dx * dx)) + arma::cx_double(0, dt * Constantes::hb / (m * dy * dy));
+  i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * Constantes::hb / (2 * m * dx * dx));
+  i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb / (2 * m * dy * dy));
+}
+```
+
+---
+
+# Solver
+
+## C++ implementation
+
+```cpp
+void Solver::generateNextStep_FTCS () {
+  arma::colvec col_zeros = arma::colvec(psi.n_rows,arma::fill::zeros);
+  arma::cx_colvec cx_col_zeros = arma::cx_colvec(col_zeros,col_zeros);
+
+  arma::cx_mat psi_x_plus_dx = psi.submat(0,1,-1,-1);
+  psi_x_plus_dx.insert_cols(-1,cx_col_zeros);
+
+  arma::cx_mat psi_x_minus_dx = psi.submat(0,0,-2,-1);
+  psi_x_minus_dx.insert_cols(0,cx_col_zeros);
+
+  arma::rowvec row_zeros = arma::rowvec(psi.n_rows,arma::fill::zeros);
+  arma::cx_rowvec cx_row_zeros = arma::cx_rowvec(row_zeros,row_zeros);
+
+  arma::cx_mat psi_y_plus_dy = psi.submat(0,1,-1,-1);
+  psi_y_plus_dy.insert_rows(-1,cx_row_zeros);
+
+  arma::cx_mat psi_y_minus_dy = psi.submat(0,0,-1,-2);
+  psi_y_minus_dy.insert_rows(0,cx_row_zeros);
+
+  psi += -(i_dt_over_hb * V + i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy) * psi
+          + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+          + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
+}
+```
+
+---
+
+# Solver
+
+## Ce qu'il reste à faire
+
+- Lecture/Ecriture sur la base de données
+- Capacité de redémarrer de la dernière étape d'une simulation
+- Calcul et stockage de la norme pour pouvoir en traquer l'évolution
+
+
+---
+
+# Post-processor
+
+- Takes a run ID as a parameter
+
+- Gets each matrix with this run ID back from the database
+
+- Creates a .vtk file for each matrix
+
+---
+
+# Database
+
+- Use of MongoDB
+- Default configuration (no need of further configuration for this project)
+
+## Arborescence:
+
+.alert.tree.hcenter[
+Database
+* Collection JSON
+	* JSON object
+	* Run ID
+* Collection Matrix
+	* Numpy matrix
+	* Run ID
+	* Number of iteration of the matrix
+* Collection Potentials
+	* Numpy matrix
+	* Run ID
+]
+
+
+---
+
+class: hcenter, middle
+# Conclusion
+
+.title[Conclusion]
+
+???
+
+Holy :cow: !!! I can put notes on my slides !?!
+    </textarea>
+
+    <script src="core/javascript/remark.js"></script>
+    <script src="core/javascript/katex.min.js"></script>
+    <script src="core/javascript/auto-render.min.js"></script>
+    <script src="core/javascript/emojify.js"></script>
+    <script src="core/javascript/mermaid.js"></script>
+    <script src="core/javascript/jquery-2.1.1.min.js"></script>
+    <script src="core/javascript/extend-jquery.js"></script>
+    <script src="core/javascript/gitgraph.js"></script>
+    <script src="core/javascript/plotly.js"></script>
+    <script src="core/javascript/asciinema-player.js"></script>
+    <script src="core/javascript/bokeh-2.2.1.min.js"></script>
+    <script src="core/javascript/bokeh-widgets-2.2.1.min.js"></script>
+    <script src="core/javascript/bokeh-tables-2.2.1.min.js"></script>
+    <script src="core/javascript/bokeh-api-2.2.1.min.js"></script>
+
+    <script>
+
+    // === Remark.js initialization ===
+    var slideshow = remark.create(
+    {
+      highlightStyle: 'monokai',
+      countIncrementalSlides: false,
+      highlightLines: false
+    });
+
+    // === Mermaid.js initialization ===
+    mermaid.initialize({
+      startOnLoad: false,
+      cloneCssStyles: false,
+      flowchart:{
+        height: 50
+      },
+      sequenceDiagram:{
+        width: 110,
+        height: 30
+      }
+    });
+    // ===== END =====
+
+    renderMathInElement(document.body,{delimiters: [{left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false}], ignoredTags: ["script", "noscript", "style", "textarea", "pre"] });
+
+
+    </script>
+    <script src="gitgraphs.js" type="text/javascript"></script>
+  </body>
+</html>
+

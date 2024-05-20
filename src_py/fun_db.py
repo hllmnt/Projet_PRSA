@@ -48,6 +48,8 @@ def check_last_mat(identifier,db):
     for i in matlist:
         if (i["iteration"]>last_occurence):
             last_occurence=i["iteration"]
+        if (i["iteration"]>last_occurence):
+            last_occurence=i["iteration"]
     return last_occurence
 
 
