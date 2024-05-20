@@ -27,23 +27,23 @@ static TestMethods suite_TestMethods;
 static CxxTest::List Tests_TestMethods = { 0, 0 };
 CxxTest::StaticSuiteDescription suiteDescription_TestMethods( "test/test_solver.h", 9, "TestMethods", suite_TestMethods, Tests_TestMethods );
 
-static class TestDescription_suite_TestMethods_testFtcs1 : public CxxTest::RealTestDescription {
+static class TestDescription_suite_TestMethods_test1 : public CxxTest::RealTestDescription {
 public:
- TestDescription_suite_TestMethods_testFtcs1() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 11, "testFtcs1" ) {}
- void runTest() { suite_TestMethods.testFtcs1(); }
-} testDescription_suite_TestMethods_testFtcs1;
+ TestDescription_suite_TestMethods_test1() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 11, "test1" ) {}
+ void runTest() { suite_TestMethods.test1(); }
+} testDescription_suite_TestMethods_test1;
 
-static class TestDescription_suite_TestMethods_testFtcs2 : public CxxTest::RealTestDescription {
+static class TestDescription_suite_TestMethods_test2 : public CxxTest::RealTestDescription {
 public:
- TestDescription_suite_TestMethods_testFtcs2() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 35, "testFtcs2" ) {}
- void runTest() { suite_TestMethods.testFtcs2(); }
-} testDescription_suite_TestMethods_testFtcs2;
+ TestDescription_suite_TestMethods_test2() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 41, "test2" ) {}
+ void runTest() { suite_TestMethods.test2(); }
+} testDescription_suite_TestMethods_test2;
 
-static class TestDescription_suite_TestMethods_testFtcs3 : public CxxTest::RealTestDescription {
+static class TestDescription_suite_TestMethods_test3 : public CxxTest::RealTestDescription {
 public:
- TestDescription_suite_TestMethods_testFtcs3() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 59, "testFtcs3" ) {}
- void runTest() { suite_TestMethods.testFtcs3(); }
-} testDescription_suite_TestMethods_testFtcs3;
+ TestDescription_suite_TestMethods_test3() : CxxTest::RealTestDescription( Tests_TestMethods, suiteDescription_TestMethods, 71, "test3" ) {}
+ void runTest() { suite_TestMethods.test3(); }
+} testDescription_suite_TestMethods_test3;
 
 #include <cxxtest/Root.cpp>
 const char* CxxTest::RealWorldDescription::_worldName = "cxxtest";

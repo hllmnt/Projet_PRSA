@@ -10,8 +10,15 @@ private:
     arma::cx_double i_dt_hb_over_2m_ddx;
     arma::cx_double i_dt_hb_over_2m_ddy;
 
-// psi encercled by zeroes to make the submat operations in the solver more efficient
-    arma::cx_mat extendedPsi;
+// defined here to speed up matrices allocations
+    arma::cx_mat extendedPsi; // used to generate more easily the 4 mtrices below
+    arma::cx_mat psi_x_plus_dx;
+    arma::cx_mat psi_x_minus_dx;
+    arma::cx_mat psi_y_plus_dy;
+    arma::cx_mat psi_y_minus_dy;
+
+// Update the matrices declared above using the given matrix
+    void updateNeighbours(const arma::cx_mat&);
 
 public:
     arma::cx_mat psi;

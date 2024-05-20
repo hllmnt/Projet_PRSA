@@ -12,27 +12,51 @@ def normalize (matrix):
                
 
 
-psi = np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F') \
-        + 1j * np.array([[0.1, 0.2], [0.3, 0.4]], dtype = np.complex128, order = 'F')
+psi =   np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 0.0, 0.1, 0.2], [0.3, 0.4, 0.5, 0.6]], dtype=np.complex128, order='F') \
+    +1j*np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 0.0, 0.1, 0.2], [0.3, 0.4, 0.5, 0.6]], dtype=np.complex128, order='F') \
 
-psi = normalize(psi)
+V = np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 0.0, 0.1, 0.2], [0.3, 0.4, 0.5, 0.6]], dtype=np.complex128, order='F')
 
-V = np.array([[0., 0.], [0., 0.]], dtype = np.complex128, order = 'F')
 dx = 0.1
 dy = 0.1
-dt = 0.01
+dt = 0.000025
 m = 1.0
 
-sol = solver.Solver(psi, V, dx, dy, dt, m)
+sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
 
-for i in range (10):
-        print("\nPsi n°",i,": ")
-        print(sol.psi)
-        print("De norme: ")
-        print(norm(sol.psi))
+tmax = 10
+for i in range (int(tmax/dt)):
+        if (i%10000 == 0):
+                print("\nPsi n°",i,"avec FTCS: ")
+                print(sol.psi)
+                print("De norme: ")
+                print(norm(sol.psi))
         sol.generateNextStep_FTCS()
 
 
+dt = 0.0005
+sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
+
+tmax = 10
+for i in range (int(tmax/dt)):
+        if (i%100 == 0):
+                print("\nPsi n°",i," avec BTCS: ")
+                print(sol.psi)
+                print("De norme: ")
+                print(norm(sol.psi))
+        sol.generateNextStep_BTCS()
+
+dt = 0.005
+sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
+
+tmax = 10
+for i in range (int(tmax/dt)):
+        if (i%100 == 0):
+                print("\nPsi n°",i,"avec CTCS: ")
+                print(sol.psi)
+                print("De norme: ")
+                print(norm(sol.psi))
+        sol.generateNextStep_CTCS()
 
 
 
@@ -55,20 +79,5 @@ for i in range (10):
 
 
 
-# psi = np.array([[0.1, 0.2, 0.3, 0.4], 
-#                 [0.5, 0.6, 0.7, 0.8], 
-#                 [0.9, 1.0, 1.1, 1.2], 
-#                 [1.3, 1.4, 1.5, 1.6]], 
-#                 dtype=np.complex128, order='F') \
-#                                                 \
-#       + 1j * np.array([[0.1, 0.2, 0.3, 0.4], 
-#                        [0.5, 0.6, 0.7, 0.8], 
-#                        [0.9, 1.0, 1.1, 1.2], 
-#                        [1.3, 1.4, 1.5, 1.6]], 
-#                        dtype=np.complex128, order='F')
 
-# V = np.array([[0.1, 0.2, 0.3, 0.4], 
-#               [0.5, 0.6, 0.7, 0.8], 
-#               [0.9, 1.0, 1.1, 1.2], 
-#               [1.3, 1.4, 1.5, 1.6]], 
-#               dtype=np.complex128, order='F')
+
