@@ -48,7 +48,7 @@ public:
 
         Solver solver(psi, V, dx, dy, dt, m);
         solver.generateNextStep_FTCS();
-
+    
         arma::cx_mat expectedPsi = {{arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)},
                                     {arma::cx_double(0,Constants::hb/2), arma::cx_double(1,-2),              arma::cx_double(0,Constants::hb/2)},
                                     {arma::cx_double(0,0),               arma::cx_double(0,Constants::hb/2), arma::cx_double(0,0)}};
