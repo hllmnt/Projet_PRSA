@@ -1,8 +1,11 @@
+import os
 import sys
-sys.path.append("~/Documents/PRSA/projet/bindings")
-
 import solver
 import numpy as np
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+target_dir = os.path.join(current_dir, "../bindings")
+sys.path.append(target_dir)
 
 def norm (matrix):
         return np.sum(matrix * np.conjugate(matrix)).real
@@ -25,7 +28,7 @@ sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
 
 tmax = 10
 for i in range (int(tmax/dt)):
-        if (i%10000 == 0):
+        if (i%100000 == 0):
                 print("\nPsi n°",i,"avec FTCS: ")
                 print(sol.psi)
                 print("De norme: ")
@@ -39,7 +42,7 @@ sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
 
 tmax = 10
 for i in range (int(tmax/dt)):
-        if (i%100 == 0):
+        if (i%10000 == 0):
                 print("\nPsi n°",i," avec BTCS: ")
                 print(sol.psi)
                 print("De norme: ")
@@ -51,7 +54,7 @@ sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
 
 tmax = 10
 for i in range (int(tmax/dt)):
-        if (i%100 == 0):
+        if (i%1000 == 0):
                 print("\nPsi n°",i,"avec CTCS: ")
                 print(sol.psi)
                 print("De norme: ")
