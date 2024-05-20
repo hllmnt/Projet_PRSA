@@ -16,19 +16,20 @@ if(len(sys.argv)!=2):
 
 runID=sys.argv[1]
 
-col=db[runID]
+json_=db["JSON_COLLECTION"].find({"runID":runID})["json"]
+json=fromBin(json_)
 
-json=db["JSON_COLLECTION"].find({"runID":runID})
+nx=json["potential"]["nx"]
+ny=json["potential"]["ny"]
 
 
-
-mlist=col.find({})
+mlist=fun_db.get_mat(runID, db)
 print(mlist)
 print(runID)
 
 for i in mlist:
     print("test")
-    filename="output_vtk/VAL{}_{}".format(runID,i["iteration"])
+    filename="../output_vtk/VAL{}_{}".format(runID,i["iteration"])
 
     N=fun_db.fromBin(i["matrix"])
     print(N)
@@ -36,8 +37,7 @@ for i in mlist:
     N=N.reshape((2,1,2))
     print(N.shape)
 
-    #imageToVTK(filename, pointData = {'N': N.astype(np.float32).reshape((nx, ny, 1), order = 'C')})
-    imageToVTK(filename, pointData = {'N': N.reshape((2,2,1))})
+    imageToVTK(filename, pointData = {'N': N.astype(np.float32).reshape((nx,ny,1))})
     print("{}.vti generated".format(filename))
 
 
