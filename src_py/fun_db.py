@@ -73,7 +73,7 @@ def get_mat(runID,db):
 def getRun(runID,db):
     '''Get the run with runID from the collection JSON_COLLECTION'''
     col = db["JSON_COLLECTION"]
-    query = {"runID":runID}
+    query = {"runID":int(runID)}
     res = col.find_one(query)
     if res == None:
         raise Exception("Run with ID {} not found".format(runID))
