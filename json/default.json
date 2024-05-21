@@ -1,9 +1,9 @@
 {
     "nb_points_x": 101,
-    "xmax": 5,
+    "xmax": 10,
     "nb_points_y": 101,
-    "ymax": 5,
-    "nb_steps": 1000,
+    "ymax": 10,
+    "nb_steps": 2000,
     "dt": 0.005,
     "m": 1,
     "method": "CTCS",
