@@ -9,6 +9,7 @@ import solver
 import numpy as np
 import pymongo
 import fun_db as fdb
+from tqdm import tqdm
 
 def norm(psi, dx, dy):
     return np.sum(psi * np.conjugate(psi)).real * dx * dy
@@ -34,21 +35,21 @@ sol = solver.Solver(psi, potential, dx, dy, dt, m)
 nb_remaining_steps = nb_steps - lastStepID
 
 if method == "FTCS":
-        for i in range(nb_remaining_steps):
+        for i in tqdm(range(nb_remaining_steps)):
                 sol.generateNextStep_FTCS()
                 lastStepID += 1
                 fdb.insert_mat(sol.psi, norm(sol.psi, dx, dy), lastStepID, runID, db)
                 fdb.updateLastStepID(runID, lastStepID, db)
 
 elif method == "BTCS":
-        for i in range(nb_remaining_steps):
+        for i in tqdm(range(nb_remaining_steps)):
                 sol.generateNextStep_BTCS()
                 lastStepID += 1
                 fdb.insert_mat(sol.psi, norm(sol.psi, dx, dy), lastStepID, runID, db)
                 fdb.updateLastStepID(runID, lastStepID, db)
 
 elif method == "CTCS":
-        for i in range(nb_remaining_steps):
+        for i in tqdm(range(nb_remaining_steps)):
                 sol.generateNextStep_CTCS()
                 lastStepID += 1
                 fdb.insert_mat(sol.psi, norm(sol.psi, dx, dy), lastStepID, runID, db)

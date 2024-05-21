@@ -77,7 +77,7 @@ elif iwf_type == "gaussian":
     ky = initial_wave_function["ky"]
     w = initial_wave_function["w"]
     psi = iwf.gaussian_packet(x, x0, y, y0, kx, ky, w)
-
+    psi = np.asfortranarray(psi)
 
 if potential_type == "img":
     path = potential["path"]
