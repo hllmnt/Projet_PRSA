@@ -314,29 +314,63 @@ else:
 
 # Field generator
 
-## Example JSON
+## Default JSON
 
 ```JSON
 {
-  "nb_points": 1001,
-  "xmax": 5,
-  "nb_steps": 1000,
+  "nb_points_x": 101,
+  "xmax": 10,
+  "nb_points_y": 101,
+  "ymax": 10,
+  "nb_steps": 2000,
   "dt": 0.005,
   "m": 1,
+  "method": "CTCS",
   "initial_wave_function": {
-      "type": "2D-HO",
-      "deg_array_x": [0, 2, 3],
-      "deg_array_y": [0, 2, 3],
-      "proportion_array": [0.333, 0.333, 0.333],
-      "w": 1
+      "type": "2D-HO"
   },
-  "method": "FCTS",
   "potential": {
-      "type": "img",
-      "path": "potential.png",
-      "min": 0,
-      "max": 1
+      "type": "null"
   }
+}
+```
+---
+
+# Field generator
+
+## Default initial wave function JSON
+
+```JSON
+{
+  "type": "2D-HO",
+  "deg_x": 0,
+  "deg_y": 0,
+  "proportion_array": [{"n": 1, "d": 1}],
+  "w": 1
+}
+```
+```JSON
+{
+  "x0": 0,
+  "y0": 0,
+  "kx": 1,
+  "ky": 1,
+  "w": 1
+}
+```
+
+## Default potential JSON
+```JSON
+{
+  "k": {"n":1, "d": 9},
+  "nx": 2,
+  "ny": 2
+}
+```
+```JSON
+{
+  "min": 0,
+  "max": 1
 }
 ```
 ---
