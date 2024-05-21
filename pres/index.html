@@ -534,7 +534,55 @@ void Solver::generateNextStep_CTCS () {
 
 - Creates a .vtk file for each matrix
 
+- Each list of .vtk files is loaded into Paraview to visualize the data
+
+- Paraview and ffmpeg are used to generate the following videos
+
 ---
+
+# Post-processor
+
+## Gaussian distribution
+
+<video controls="yes" preload="auto" width="100%" height="auto" data-setup="{}" loop>
+<source src="images/gauss.mp4" type="video/mp4" />
+</video>
+
+
+---
+
+# Post-processor
+
+## Quantum tunelling
+
+<video controls="yes" preload="auto" width="100%" height="auto" data-setup="{}" loop>
+<source src="images/tunnel.mp4" type="video/mp4" />
+</video>
+
+
+---
+
+# Post-processor
+
+## Young's interference
+
+<video controls="yes" preload="auto" width="100%" height="auto" data-setup="{}" loop>
+<source src="images/young.mp4" type="video/mp4" />
+</video>
+
+
+---
+# Post-processor
+
+## Mix of gaussian distributions
+
+<video controls="yes" preload="auto" width="100%" height="auto" data-setup="{}" loop>
+<source src="images/mix.mp4" type="video/mp4" />
+</video>
+
+
+---
+
 
 # Database
 
@@ -552,9 +600,6 @@ Database
 	* Numpy matrix
 	* Run ID
 	* Number of iteration of the matrix
-* Collection Potentials
-	* Numpy matrix
-	* Run ID
 ]
 
 
