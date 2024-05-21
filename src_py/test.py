@@ -1,15 +1,17 @@
+import os
 import sys
-sys.path.append("~/Documents/PRSA/projet/bindings")
-
 import solver
 import numpy as np
 
-def norm (matrix):
-        return np.sum(matrix * np.conjugate(matrix)).real
+current_dir = os.path.dirname(os.path.abspath(__file__))
+target_dir = os.path.join(current_dir, "../bindings")
+sys.path.append(target_dir)
 
-def normalize (matrix):
-        return matrix / np.sqrt(norm(matrix))
-               
+def norm (matrix,dx,dy):
+        return np.sum(matrix * np.conjugate(matrix)).real * dx * dy
+
+def normalize (matrix,dx,dy):
+        return matrix / np.sqrt(norm(matrix,dx,dy))
 
 
 psi =   np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8], [0.9, 0.0, 0.1, 0.2], [0.3, 0.4, 0.5, 0.6]], dtype=np.complex128, order='F') \
@@ -22,24 +24,25 @@ dy = 0.1
 dt = 0.000025
 m = 1.0
 
-sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
+sol = solver.Solver(normalize(psi,dx,dy), V, dx, dy, dt, m)
 
 tmax = 10
 for i in range (int(tmax/dt)):
-        if (i%10000 == 0):
+        if (i%100000 == 0):
                 print("\nPsi n°",i,"avec FTCS: ")
                 print(sol.psi)
                 print("De norme: ")
                 print(norm(sol.psi))
+
         sol.generateNextStep_FTCS()
 
 
 dt = 0.0005
-sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
+sol = solver.Solver(normalize(psi,dx,dy), V, dx, dy, dt, m)
 
 tmax = 10
 for i in range (int(tmax/dt)):
-        if (i%100 == 0):
+        if (i%10000 == 0):
                 print("\nPsi n°",i," avec BTCS: ")
                 print(sol.psi)
                 print("De norme: ")
@@ -47,11 +50,11 @@ for i in range (int(tmax/dt)):
         sol.generateNextStep_BTCS()
 
 dt = 0.005
-sol = solver.Solver(normalize(psi), V, dx, dy, dt, m)
+sol = solver.Solver(normalize(psi,dx,dy), V, dx, dy, dt, m)
 
-tmax = 10
+tmax = 100
 for i in range (int(tmax/dt)):
-        if (i%100 == 0):
+        if (i%1000 == 0):
                 print("\nPsi n°",i,"avec CTCS: ")
                 print(sol.psi)
                 print("De norme: ")

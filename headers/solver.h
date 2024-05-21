@@ -11,14 +11,14 @@ private:
     arma::cx_double i_dt_hb_over_2m_ddy;
 
 // defined here to speed up matrices allocations
-    arma::cx_mat extendedPsi; // used to generate more easily the 4 mtrices below
+    arma::cx_mat extendedPsi; // used to generate more easily the 4 matrices below
     arma::cx_mat psi_x_plus_dx;
     arma::cx_mat psi_x_minus_dx;
     arma::cx_mat psi_y_plus_dy;
     arma::cx_mat psi_y_minus_dy;
 
-// Update the matrices declared above using the given matrix
-    void updateNeighbours(const arma::cx_mat&);
+// Update the 4 matrices declared above using the given matrix
+    void updateShiftedPsis(const arma::cx_mat&);
 
 public:
     arma::cx_mat psi;
