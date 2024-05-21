@@ -26,8 +26,8 @@ ny=json["nb_points_y"]
 xmax=json["xmax"]
 ymax=json["ymax"]
 
-dx=2*xmax/nx
-dy=2*ymax/ny
+dx=2*xmax/(nx-1)
+dy=2*ymax/(ny-1)
 
 
 mlist=fun_db.get_mat(runID, db)
