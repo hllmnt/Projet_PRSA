@@ -1,16 +1,19 @@
 #ifndef SOLVER_H
 #define SOLVER_H
 #include <armadillo>
-#include "constants.h"
 
 class Solver {
 private:
+    static constexpr double hb = 1; // J.s
+
 // useful numerical values and matrices that only need to be computed once
     arma::cx_mat i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
     arma::cx_double i_dt_hb_over_2m_ddx;
     arma::cx_double i_dt_hb_over_2m_ddy;
 
 // defined here to speed up matrices allocations
+    arma::cx_mat lastGuessedPsi;
+    arma::cx_mat newGuessedPsi;
     arma::cx_mat extendedPsi; // used to generate more easily the 4 matrices below
     arma::cx_mat psi_x_plus_dx;
     arma::cx_mat psi_x_minus_dx;
