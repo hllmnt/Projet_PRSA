@@ -26,8 +26,8 @@ ny=json["nb_points_y"]
 xmax=json["xmax"]
 ymax=json["ymax"]
 
-dx=2*xmax/nx
-dy=2*ymax/ny
+dx=2*xmax/(nx-1)
+dy=2*ymax/(ny-1)
 
 
 mlist=fun_db.get_mat(runID, db)
@@ -36,7 +36,7 @@ for i in mlist:
     filename="output_vtk/VAL{}_{}".format(runID,i["iteration"])
 
     N_=fun_db.fromBin(i["matrix"])
-    N=np.abs(N_)
+    N=np.abs(N_)+potential
     imageToVTK(filename, origin = (-xmax, -ymax, 0.0),spacing = (dx, dy, 1.0) , pointData = {'N': N.astype(np.float32).reshape((nx,ny,1))})
     print("{}.vti generated".format(filename))
 
