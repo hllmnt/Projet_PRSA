@@ -63,14 +63,27 @@ def get_one_mat(iteration,runID,db):
     col=db["run_{}".format(runID)]
     query={"iteration":iteration}
     matrix=col.find_one(query)
-    return matrix
+    return fromBin(matrix["matrix"])
 
 def get_mat(runID,db):
     col=db["run_{}".format(runID)]
     mlist=col.find({})
     return mlist
 
+def getRun(runID,db):
+    '''Get the run with runID from the collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    query = {"runID":runID}
+    res = col.find_one(query)
+    if res == None:
+        raise Exception("Run with ID {} not found".format(runID))
+    return fromBin(res["json"]), res["lastStepID"]
 
 
-
-
+def updateLastStepID(runID, lastStepID, db):
+    '''Update the lastStepID of the run with runID in the collection JSON_COLLECTION'''
+    col = db["JSON_COLLECTION"]
+    query = {"runID":runID}
+    newvalues = {"$set": {"lastStepID":lastStepID}}
+    col.update_one(query, newvalues)
+    return

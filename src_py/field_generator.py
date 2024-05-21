@@ -92,7 +92,7 @@ elif potential_type == "formula":
     v = pt.from_formula(x, y, k, nx, ny)
 
 else:
-    v = np.zeros((nb_points_x, nb_points_y))
+    v = np.zeros((nb_points_x, nb_points_y), dtype=np.complex128, order='F')
 
 
 db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
@@ -114,4 +114,4 @@ else:
 
     norm = np.sum(psi*np.conj(psi))*dx*dy
 
-    fdb.insert_mat(psi, str(norm), str(0), str(runID), db)
+    fdb.insert_mat(psi, norm.real, 0, runID, db)
