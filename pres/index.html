@@ -258,21 +258,29 @@ else:
 ```cpp
 class Solver {
   private:
-      arma::cx_mat V;
-      double dx;
-      double dy;
-      double dt;
-      double m;
+      static constexpr double hb = 1; // J.s
   
-      arma::cx_double i_dt_over_hb;
-      arma::cx_double i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
+  // useful numerical values and matrices that only need to be computed once
+      arma::cx_mat i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy;
       arma::cx_double i_dt_hb_over_2m_ddx;
       arma::cx_double i_dt_hb_over_2m_ddy;
+  
+  // defined here to speed up matrices allocations
+      arma::cx_mat lastGuessedPsi;
+      arma::cx_mat newGuessedPsi;
+      arma::cx_mat extendedPsi; // used to generate more easily the 4 matrices below
+      arma::cx_mat psi_x_plus_dx;
+      arma::cx_mat psi_x_minus_dx;
+      arma::cx_mat psi_y_plus_dy;
+      arma::cx_mat psi_y_minus_dy;
+  
+  // Update the 4 matrices declared above using the given matrix
+      void updateShiftedPsis(const arma::cx_mat&);
   
   public:
       arma::cx_mat psi;
   
-      Solver(arma::mat,arma::mat,arma::mat,arma::mat,double,double,double);
+      Solver(arma::cx_mat,arma::cx_mat,double,double,double,double);
   
   // return the following state of the wave function
       void generateNextStep_FTCS ();
@@ -287,18 +295,15 @@ class Solver {
 ## C++ implementation
 
 ```cpp
-Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, arma::mat V_imaginary, double grid_interval, double dt, double m) {
-  psi = arma::cx_mat(psi_real,psi_imaginary);
-  V = arma::cx_mat(V_real,V_imaginary);
-  dx = grid_interval;
-  dy = grid_interval;
-  dt = dt;Constantes
-  m = m;
+Solver::Solver(arma::cx_mat _psi, arma::cx_mat V, double dx, double dy, double dt, double m ){
+  psi = _psi;
+  extendedPsi = arma::cx_mat(_psi.n_rows + 2, _psi.n_cols + 2, arma::fill::zeros);
 
-  i_dt_over_hb = arma::cx_double(0, dt / Constantes::hb);
-  i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = arma::cx_double(0, dt * Constantes::hb / (m * dx * dx)) + arma::cx_double(0, dt * Constantes::hb / (m * dy * dy));
-  i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * Constantes::hb / (2 * m * dx * dx));
-  i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * Constantes::hb / (2 * m * dy * dy));
+  i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy = -(arma::cx_double(0, dt / hb) * V
+      + arma::cx_double(0, dt * hb / (m * dx * dx)) + arma::cx_double(0, dt * hb / (m * dy * dy)));
+
+  i_dt_hb_over_2m_ddx = arma::cx_double(0, dt * hb / (2 * m * dx * dx));
+  i_dt_hb_over_2m_ddy = arma::cx_double(0, dt * hb / (2 * m * dy * dy));
 }
 ```
 
@@ -309,28 +314,23 @@ Solver::Solver(arma::mat psi_real, arma::mat psi_imaginary, arma::mat V_real, ar
 ## C++ implementation
 
 ```cpp
+// Update psi_x_plus_dx and the other similar matrices using the argument
+void Solver::updateShiftedPsis (const arma::cx_mat& _psi) {
+// Update extendedPsi which is useful for generating the submatrices below
+    extendedPsi.submat(1, 1, _psi.n_rows, _psi.n_cols) = _psi;
+
+// Generate matrices to vectorize the calculation of psi
+    psi_x_plus_dx = extendedPsi.submat(2, 1, extendedPsi.n_rows-1, extendedPsi.n_cols-2);
+    psi_x_minus_dx = extendedPsi.submat(0, 1, extendedPsi.n_rows-3, extendedPsi.n_cols-2);
+    psi_y_plus_dy = extendedPsi.submat(1, 2, extendedPsi.n_rows-2, extendedPsi.n_cols-1);
+    psi_y_minus_dy = extendedPsi.submat(1, 0, extendedPsi.n_rows-2, extendedPsi.n_cols-3);
+}
+
 void Solver::generateNextStep_FTCS () {
-  arma::colvec col_zeros = arma::colvec(psi.n_rows,arma::fill::zeros);
-  arma::cx_colvec cx_col_zeros = arma::cx_colvec(col_zeros,col_zeros);
-
-  arma::cx_mat psi_x_plus_dx = psi.submat(0,1,-1,-1);
-  psi_x_plus_dx.insert_cols(-1,cx_col_zeros);
-
-  arma::cx_mat psi_x_minus_dx = psi.submat(0,0,-2,-1);
-  psi_x_minus_dx.insert_cols(0,cx_col_zeros);
-
-  arma::rowvec row_zeros = arma::rowvec(psi.n_rows,arma::fill::zeros);
-  arma::cx_rowvec cx_row_zeros = arma::cx_rowvec(row_zeros,row_zeros);
-
-  arma::cx_mat psi_y_plus_dy = psi.submat(0,1,-1,-1);
-  psi_y_plus_dy.insert_rows(-1,cx_row_zeros);
-
-  arma::cx_mat psi_y_minus_dy = psi.submat(0,0,-1,-2);
-  psi_y_minus_dy.insert_rows(0,cx_row_zeros);
-
-  psi += -(i_dt_over_hb * V + i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy) * psi
-          + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
-          + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
+    updateShiftedPsis(psi);
+    psi += i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
+            + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+            + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
 }
 ```
 
@@ -338,12 +338,57 @@ void Solver::generateNextStep_FTCS () {
 
 # Solver
 
-## Ce qu'il reste à faire
+## C++ implementation
 
-- Lecture/Ecriture sur la base de données
-- Capacité de redémarrer de la dernière étape d'une simulation
-- Calcul et stockage de la norme pour pouvoir en traquer l'évolution
+```cpp
+void Solver::generateNextStep_BTCS () {
+  newGuessedPsi = psi;
 
+  double epsilon = 1.0e-14;
+
+  do {
+    lastGuessedPsi = newGuessedPsi;
+    updateShiftedPsis(lastGuessedPsi);
+    newGuessedPsi = psi + i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
+                        + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                        + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
+  } 
+  while (arma::norm(newGuessedPsi - lastGuessedPsi) > epsilon);
+
+  psi = newGuessedPsi;
+};
+```
+
+---
+
+# Solver
+
+## C++ implementation
+
+```cpp
+void Solver::generateNextStep_CTCS () {
+  updateShiftedPsis(psi);
+  arma::cx_mat preCalculatedPsiPart = psi + 
+        0.5 * (i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
+                + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
+  newGuessedPsi = psi;
+
+  double epsilon = 1.0e-14;
+  
+  do {
+    lastGuessedPsi = newGuessedPsi;
+    updateShiftedPsis(lastGuessedPsi);
+    newGuessedPsi = preCalculatedPsiPart + 
+        0.5 * (i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
+                + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
+  } 
+  while (arma::norm(newGuessedPsi - lastGuessedPsi) > epsilon);
+
+  psi = newGuessedPsi;
+};
+```
 
 ---
 

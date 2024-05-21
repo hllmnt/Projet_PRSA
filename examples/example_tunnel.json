@@ -15,6 +15,7 @@
     },
     "potential": {
         "type": "img",
-        "path": "examples/tunnel.png"
+        "path": "examples/tunnel.png",
+        "max": 10
     }
 }
