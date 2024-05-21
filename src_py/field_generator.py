@@ -13,7 +13,9 @@ default_path = "/".join(__file__.split("/")[:-2])
 
 json_params = json.load(open(default_path + "/json/default.json"))
 
-input_json = json.load(open(sys.argv[1]))
+input_json = {}
+if len(sys.argv) > 1:
+    input_json = json.load(open(sys.argv[1]))
 
 for key, value in input_json.items():
     json_params[key] = value
