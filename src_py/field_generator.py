@@ -109,8 +109,8 @@ else:
 
     print("Created run with ID: ", runID)
 
-    dx = x[1] - x[0]
-    dy = y[1] - y[0]
+    dx = 2*json_params["xmax"]/(json_params["nb_points_x"]-1)
+    dy = 2*json_params["ymax"]/(json_params["nb_points_y"]-1)
 
     norm = np.sum(psi*np.conj(psi))*dx*dy
 
