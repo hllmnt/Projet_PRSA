@@ -32,7 +32,7 @@ for i in range (int(tmax/dt)):
                 print("\nPsi n°",i,"avec FTCS: ")
                 print(sol.psi)
                 print("De norme: ")
-                print(norm(sol.psi))
+                print(norm(sol.psi,dx,dy))
 
         sol.generateNextStep_FTCS()
 
@@ -46,7 +46,7 @@ for i in range (int(tmax/dt)):
                 print("\nPsi n°",i," avec BTCS: ")
                 print(sol.psi)
                 print("De norme: ")
-                print(norm(sol.psi))
+                print(norm(sol.psi,dx,dy))
         sol.generateNextStep_BTCS()
 
 dt = 0.005
@@ -58,29 +58,7 @@ for i in range (int(tmax/dt)):
                 print("\nPsi n°",i,"avec CTCS: ")
                 print(sol.psi)
                 print("De norme: ")
-                print(norm(sol.psi))
+                print(norm(sol.psi,dx,dy))
         sol.generateNextStep_CTCS()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
