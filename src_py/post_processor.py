@@ -5,6 +5,7 @@ import fun_db
 import sys
 from pyevtk.hl import imageToVTK
 
+'''Program to generate vti files'''
 
 client=pymongo.MongoClient("mongodb://localhost:27017")
 db=client["PRSA"]
@@ -18,7 +19,7 @@ runID=sys.argv[1]
 json= fun_db.getRun(runID,db)[0]
 
 potential = json["potential"]
-potential /= potential.max() + 1e-15
+potential /= potential.max() + 1e-15 
 
 nx=json["nb_points_x"]
 ny=json["nb_points_y"]

@@ -12,6 +12,10 @@ import pymongo
 import fun_db as fdb
 from tqdm import tqdm
 
+'''
+Program to launch a run from a runID
+'''
+
 def norm(psi, dx, dy):
     return np.sum(psi * np.conjugate(psi)).real * dx * dy
 
@@ -21,8 +25,9 @@ db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
 
 jsonParams, lastStepID = fdb.getRun(runID, db)
 
-psi = fdb.get_one_mat(lastStepID, runID, db)
+psi = fdb.get_one_mat(lastStepID, runID, db) # Get the last step
 
+# Initialize the parameters
 potential = jsonParams["potential"]
 dx = 2*jsonParams["xmax"]/(jsonParams["nb_points_x"]-1)
 dy = 2*jsonParams["ymax"]/(jsonParams["nb_points_y"]-1)
@@ -31,8 +36,10 @@ nb_steps = jsonParams["nb_steps"]
 m = jsonParams["m"]
 method = jsonParams["method"]
 
+# Initialize the solver
 sol = solver.Solver(psi, potential, dx, dy, dt, m)
 
+# Calculate the remaining steps
 nb_remaining_steps = nb_steps - lastStepID
 
 if method == "FTCS":

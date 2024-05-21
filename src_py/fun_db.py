@@ -1,8 +1,10 @@
 import pymongo
 import numpy as np
 import pickle
-import json
-import hashlib
+
+'''
+Functions to interact with the database
+'''
 
 db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
 
