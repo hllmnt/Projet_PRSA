@@ -313,6 +313,15 @@ Solver::Solver(arma::cx_mat _psi, arma::cx_mat V, double dx, double dy, double d
 
 ## C++ implementation
 
+`$$
+\begin{aligned}
+\psi^{(t+dt)} = \psi + i.dt \Bigg[ & \left(-\frac{1}{\hbar}V(x,y) - \frac{\hbar}{m.dx^2}-\frac{\hbar}{m.dy^2}\right)\psi\\
+&+ \frac{\hbar}{2m.dx^2}\left(\psi_{x+dx}+\psi_{x-dx}\right)\\
+&+ \frac{\hbar}{2m.dy^2}\left(\psi_{y+dy}+\psi_{y-dy}\right)\Bigg]
+\end{aligned}
+$$`
+
+
 ```cpp
 // Update psi_x_plus_dx and the other similar matrices using the argument
 void Solver::updateShiftedPsis (const arma::cx_mat& _psi) {
@@ -340,6 +349,14 @@ void Solver::generateNextStep_FTCS () {
 
 ## C++ implementation
 
+`$$
+\begin{aligned}
+\psi^{(t+dt)} = \psi + i.dt\Bigg[ & \left( -\frac{1}{\hbar}V(x,y) -\frac{\hbar}{m.dx^2} -\frac{\hbar}{m.dy^2}\right)\psi^{(t+dt)}\\
+&+ \frac{\hbar}{2m.dx^2}\left(\psi^{(t+dt)}_{x+dx}+\psi^{(t+dt)}_{x-dx}\right)\\
+&+ \frac{\hbar}{2m.dy^2}\left(\psi^{(t+dt)}_{y+dy}+\psi^{(t+dt)}_{y-dy}\right)\Bigg]
+\end{aligned}
+$$`
+
 ```cpp
 void Solver::generateNextStep_BTCS () {
   newGuessedPsi = psi;
@@ -358,6 +375,23 @@ void Solver::generateNextStep_BTCS () {
   psi = newGuessedPsi;
 };
 ```
+
+---
+
+# Solver
+
+## C++ implementation
+
+`$$
+\begin{aligned}
+\psi^{(t+dt)} = \psi + i\frac{dt}{2}\Bigg[ & \left( -\frac{1}{\hbar}V(x,y) - \frac{\hbar}{m.dx^2} - \frac{\hbar}{m.dy^2}\right)\psi\\
+&+ \frac{\hbar}{2m.dx^2}\left(\psi_{x+dx}+\psi_{x-dx}\right)\\
+&+ \frac{\hbar}{2m.dy^2}\left(\psi_{y+dy}+\psi_{y-dy}\right)\\
+&+ \left( -\frac{1}{\hbar}V(x,y) - \frac{\hbar}{m.dx^2} -\frac{\hbar}{m.dy^2}\right)\psi^{(t+dt)}\\
+&+ \frac{\hbar}{2m.dx^2}\left(\psi^{(t+dt)}_{x+dx}+\psi^{(t+dt)}_{x-dx}\right)\\
+&+ \frac{\hbar}{2m.dy^2}\left(\psi^{(t+dt)}_{y+dy}+\psi^{(t+dt)}_{y-dy}\right)\Bigg]
+\end{aligned}
+$$`
 
 ---
 
