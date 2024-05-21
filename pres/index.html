@@ -43,13 +43,14 @@ Valentin GACHON / Hugo LALLEMANT / Elouan LESTEVEN - [Retour au début](./index.
 class: middle
 # Plan
 
-## 1. Field Generator
+## 1. Database
 
-## 2. Solver
+## 2. Field Generator
 
-## 3. Post-processor
+## 3. Solver
 
-## 4. Database
+## 4. Post-processor
+
 
 ---
 
@@ -69,11 +70,35 @@ Projet/
 	* field_generator.py
 	* initial_wave_function.py
 	* potential.py
-	* db_access.py
+	* fun_db.py
+	* post_processor.py
 * test/
   * test_solver.h
 * Makefile
 ]
+
+---
+
+# Database
+
+- Use of MongoDB
+- Default configuration (no need of further configuration for this project)
+
+## Arborescence:
+
+.alert.tree.hcenter[
+Database
+* Collection JSON
+	* JSON object
+	* Run ID
+	* Last step ID
+* Collection Runx
+	* Numpy matrix
+	* Run ID
+	* Norm of the matrix
+]
+
+
 
 
 ---
@@ -664,27 +689,6 @@ else:
 <source src="images/mix.mp4" type="video/mp4" />
 </video>
 
-
----
-
-
-# Database
-
-- Use of MongoDB
-- Default configuration (no need of further configuration for this project)
-
-## Arborescence:
-
-.alert.tree.hcenter[
-Database
-* Collection JSON
-	* JSON object
-	* Run ID
-* Collection Matrix
-	* Numpy matrix
-	* Run ID
-	* Number of iteration of the matrix
-]
 
 
 ---
