@@ -36,7 +36,7 @@ for i in mlist:
     filename="output_vtk/VAL{}_{}".format(runID,i["iteration"])
 
     N_=fun_db.fromBin(i["matrix"])
-    N=np.abs(N_)
+    N=np.abs(N_)+potential
     imageToVTK(filename, origin = (-xmax, -ymax, 0.0),spacing = (dx, dy, 1.0) , pointData = {'N': N.astype(np.float32).reshape((nx,ny,1))})
     print("{}.vti generated".format(filename))
 
