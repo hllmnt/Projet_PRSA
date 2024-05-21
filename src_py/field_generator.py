@@ -1,3 +1,4 @@
+#!/bin/python3
 import initial_wave_function as iwf
 import numpy as np
 import potential as pt
@@ -94,7 +95,7 @@ elif potential_type == "formula":
 else:
     v = np.zeros((nb_points_x, nb_points_y), dtype=np.complex128, order='F')
 
-
+print("test")
 db = pymongo.MongoClient("mongodb://localhost:27017/")["PRSA"]
 
 json_params["potential"] = v
