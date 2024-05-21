@@ -347,11 +347,11 @@ void Solver::generateNextStep_BTCS () {
   double epsilon = 1.0e-14;
 
   do {
-      lastGuessedPsi = newGuessedPsi;
-      updateShiftedPsis(lastGuessedPsi);
-      newGuessedPsi = psi + i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
-                          + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
-                          + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
+    lastGuessedPsi = newGuessedPsi;
+    updateShiftedPsis(lastGuessedPsi);
+    newGuessedPsi = psi + i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
+                        + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                        + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy);
   } 
   while (arma::norm(newGuessedPsi - lastGuessedPsi) > epsilon);
 
@@ -368,36 +368,27 @@ void Solver::generateNextStep_BTCS () {
 ```cpp
 void Solver::generateNextStep_CTCS () {
   updateShiftedPsis(psi);
-  arma::cx_mat preCalculatedPsiPart = psi + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
-                                                  + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
-                                                  + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
+  arma::cx_mat preCalculatedPsiPart = psi + 
+        0.5 * (i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % psi
+                + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
   newGuessedPsi = psi;
 
   double epsilon = 1.0e-14;
   
   do {
-      lastGuessedPsi = newGuessedPsi;
-      updateShiftedPsis(lastGuessedPsi);
-      newGuessedPsi = preCalculatedPsiPart + 0.5*(i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
-                                                  + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
-                                                  + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
+    lastGuessedPsi = newGuessedPsi;
+    updateShiftedPsis(lastGuessedPsi);
+    newGuessedPsi = preCalculatedPsiPart + 
+        0.5 * (i_dt_over_hb_times_V_plus_i_dt_hb_over_m_ddx_plus_i_dt_hb_over_m_ddy % lastGuessedPsi
+                + i_dt_hb_over_2m_ddx * (psi_x_plus_dx + psi_x_minus_dx)
+                + i_dt_hb_over_2m_ddy * (psi_y_plus_dy + psi_y_minus_dy));
   } 
   while (arma::norm(newGuessedPsi - lastGuessedPsi) > epsilon);
 
   psi = newGuessedPsi;
 };
 ```
-
----
-
-# Solver
-
-## Ce qu'il reste à faire
-
-- Lecture/Ecriture sur la base de données
-- Capacité de redémarrer de la dernière étape d'une simulation
-- Calcul et stockage de la norme pour pouvoir en traquer l'évolution
-
 
 ---
 
