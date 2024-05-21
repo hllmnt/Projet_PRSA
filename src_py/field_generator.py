@@ -59,7 +59,7 @@ ymax = json_params["ymax"]
 nb_points_y = json_params["nb_points_y"]
 
 x = np.linspace(-xmax, xmax, nb_points_x)
-y = np.linspace(-ymax, tmax, nb_points_y)
+y = np.linspace(-ymax, xmax, nb_points_y)
 
 if iwf_type == "2D-HO":
     deg_x = initial_wave_function["deg_x"]
