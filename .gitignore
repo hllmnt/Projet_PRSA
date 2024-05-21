@@ -3,3 +3,8 @@ obj
 src_py/__pycache__
 *.png
 visu.py
+bindings/build/*
+bindings/dist/*
+bindings/package*
+test/test_solver
+test/test_solver.cpp
