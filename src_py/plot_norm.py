@@ -5,6 +5,9 @@ import fun_db
 import sys
 import matplotlib.pyplot as pl
 
+'''
+Program to get a run from the database and plot the deviation of the norm from 1
+'''
 
 client=pymongo.MongoClient("mongodb://localhost:27017")
 db=client["PRSA"]

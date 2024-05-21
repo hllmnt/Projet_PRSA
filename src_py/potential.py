@@ -1,6 +1,10 @@
 import numpy as np
 from PIL import Image
 
+'''
+Functions to generate potential
+'''
+
 def from_img(path, min, max):
     img = np.asarray(Image.open(path).convert('L'), dtype=np.complex128, order='F')
     v = img*(max-min)/255 + min
