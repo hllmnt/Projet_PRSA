@@ -8,3 +8,4 @@ bindings/dist/*
 bindings/package*
 test/test_solver
 test/test_solver.cpp
+output_vtk
