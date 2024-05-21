@@ -1,7 +1,6 @@
 bin
 obj
 src_py/__pycache__
-*.png
 visu.py
 bindings/build/*
 bindings/dist/*
