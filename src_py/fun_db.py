@@ -17,15 +17,6 @@ def fromBin(x):
     '''Returns the data stored in binary form in x in its original form'''
     return pickle.loads(x)
 
-def lastStep(runID,db):
-    '''Get the value lastStepID from collection JSON_COLLECTION'''
-    col = db["JSON_COLLECTION"]
-    query = {"runID":runID}
-    jlist = col.find(query)
-    if len(jlist) == 0:
-        return -1
-    return jlist[0]["lastStepID"]
-
 def lastRunID(db):
     '''Get the last runID from collection JSON_COLLECTION'''
     col = db["JSON_COLLECTION"]
@@ -51,7 +42,6 @@ def createRun(jsonParams,db):
     x = toBin(jsonParams)
     col.insert_one({"runID":runID, "json":x, "lastStepID":0})
     return runID
-
 
 def insert_mat(matrix_,norm,iteration,runID,db):
     '''Inserts the matrix in the database'''
